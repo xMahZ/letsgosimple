@@ -1,0 +1,72 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+const herramientas = [
+  {
+    nombre: "UF a Peso",
+    descripcion: "Convierte UF a pesos chilenos rápidamente.",
+    url: "/cl/fn/uf-a-peso"
+  },
+
+  {
+    nombre: "Sueldo Líquido",
+    descripcion: "Calcula tu sueldo líquido en Chile.",
+    url: "/cl/emp/sueldo-liquido"
+  },
+  {
+    nombre: "Porcentaje",
+    descripcion: "Calcula porcentajes simples.",
+    url: "/cl/util/porcentaje"
+  }
+];
+---
+
+<BaseLayout
+  title="LetsGoSimple"
+  description="Herramientas rápidas y simples para Chile."
+>
+  <main class="max-w-5xl mx-auto px-6 py-16">
+    <section class="text-center">
+      <h1 class="text-6xl font-bold tracking-tight">
+        LetsGoSimple
+      </h1>
+      <p class="mt-6 text-xl text-gray-600 max-w-2xl mx-auto">
+        Herramientas rápidas, simples y útiles.
+        Sin distracciones.
+      </p>
+      <div class="mt-10">
+        <a
+          href="#herramientas"
+          class="inline-block bg-black text-white px-6 py-4 rounded-xl text-lg"
+        >
+          Ver herramientas
+        </a>
+      </div>
+    </section>
+    <section id="herramientas" class="mt-24">
+      <h2 class="text-3xl font-bold">
+        Herramientas
+      </h2>
+      <div class="grid md:grid-cols-3 gap-6 mt-10">
+        {
+          herramientas.map((h) => (
+            <a
+              href={h.url}
+              class="border rounded-2xl p-6 hover:shadow-lg transition"
+            >
+              <h3 class="text-2xl font-semibold">
+                {h.nombre}
+              </h3>
+              <p class="mt-3 text-gray-600">
+                {h.descripcion}
+              </p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+    <footer class="mt-32 pt-10 border-t text-sm text-gray-500">
+      © 2026 LetsGoSimple
+    </footer>
+  </main>
+</BaseLayout>
+

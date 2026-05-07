@@ -1,0 +1,34 @@
+---
+import "../styles/global.css";
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = "Herramientas rápidas y simples."
+} = Astro.props;
+
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width"
+    />
+
+    <title>{title}</title>
+
+    <meta
+      name="description"
+      content={description}
+    />
+  </head>
+  <body class="bg-white text-black font-sans">
+    <slot />
+  </body>
+</html>
+
