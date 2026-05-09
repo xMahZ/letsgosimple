@@ -2,7 +2,7 @@ name: Update Finance Data
 
 on:
   schedule:
-    - cron: "0 3 * * *"  # todos los días 03:00 UTC
+    - cron: "10 14 * * *"
   workflow_dispatch:
 
 jobs:
