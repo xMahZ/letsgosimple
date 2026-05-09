@@ -18,6 +18,12 @@ const herramientas = [
     url: "/cl/util/porcentaje"
   }
 ];
+
+import data from "../../data/cl-finance.json";
+const date = data.updated_at;
+const uf = data.rates.uf.value_clp;
+const usd = data.rates.usd.value_clp;
+const utm = data.rates.utm.value_clp;
 ---
 
 <BaseLayout
@@ -34,13 +40,30 @@ const herramientas = [
         Sin distracciones.
       </p>
       <div class="mt-10">
-        <a
-          href="#herramientas"
-          class="inline-block bg-black text-white px-6 py-4 rounded-xl text-lg"
-        >
-          Ver herramientas
-        </a>
       </div>
+    </section>
+    <section class="text-center">
+  <div class="mt-2 grid gap-5">
+
+    <div class="p-4 rounded-lg border border-white/10 bg-white/5">
+      <div class="text-sm text-slate-400">UF</div>
+      <div id="uf" class="text-xl text-white">UF: ${uf.toLocaleString("es-CL")}</div>
+    </div>
+
+    <div class="p-4 rounded-lg border border-white/10 bg-white/5">
+      <div class="text-sm text-slate-400">USD</div>
+      <div id="usd" class="text-xl text-white">USD: ${usd.toLocaleString("es-CL")}</div>
+    </div>
+
+    <div class="p-4 rounded-lg border border-white/10 bg-white/5">
+      <div class="text-sm text-slate-400">UTM</div>
+      <div id="utm" class="text-xl text-white">UTM: ${utm.toLocaleString("es-CL")}</div>
+    </div>
+<div class="p-1 rounded-lg border border-white/10 bg-white/5">
+      <div class="text-sm text-slate-300">Cifras actualizadas al:</div>
+      <div id="uf" class="text text-white">{date.toLocaleString("es-CL")}</div>
+    </div>
+  </div>
     </section>
     <section id="herramientas" class="mt-24">
       <h2 class="text-3xl font-bold">

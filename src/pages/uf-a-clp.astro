@@ -1,0 +1,123 @@
+---
+import BaseLayout from "../layouts/baselayout.astro";
+import data from "../../data/cl-finance.json";
+
+const ufValue = data.rates.uf.value_clp;
+---
+
+<BaseLayout title="UF a CLP | Conversor UF a Peso Chileno">
+  <main class="max-w-2xl mx-auto px-4 py-12">
+
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      UF a CLP
+    </h1>
+
+    <p class="mt-2 text-slate-400">
+      Conversor rápido de Unidad de Fomento a Peso Chileno.
+    </p>
+
+    <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
+
+      <div class="text-sm text-slate-400 mb-2">
+        Valor UF actual:
+        <span class="text-blue-400">
+          ${ufValue.toLocaleString("es-CL")}
+        </span>
+      </div>
+
+      <label class="block text-sm text-slate-300 mb-2">
+        Ingresa UF
+      </label>
+
+      <input
+        id="ufInput"
+        type="number"
+        step="0.01"
+        placeholder="Ej: 2.5"
+        class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500"
+      />
+
+      <button
+        id="calcBtn"
+        class="mt-4 w-full px-4 py-3 rounded-lg bg-blue-500 hover:bg-blue-400 text-black font-semibold transition"
+      >
+        Convertir
+      </button>
+
+      <div class="mt-6 p-4 rounded-lg border border-white/10 bg-[#070b16] flex items-center justify-between gap-4">
+  <div>
+    <div class="text-sm text-slate-400">Resultado</div>
+    <div id="result" class="text-2xl text-white mt-1">—</div>
+  </div>
+
+  <button
+    id="copyBtn"
+    class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition text-sm"
+  >
+    Copiar
+  </button>
+</div>
+
+    </div>
+
+    <section class="mt-10 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-2">¿Qué es la UF?</h2>
+      <p>
+        La UF (Unidad de Fomento) es una unidad de cuenta usada en Chile, ajustada por inflación.
+        Se usa comúnmente en créditos hipotecarios, arriendos y contratos.
+      </p>
+
+      <h2 class="text-white font-semibold text-lg mt-6 mb-2">¿Cómo convertir UF a CLP?</h2>
+      <p>
+        Para convertir UF a pesos chilenos, se multiplica el valor de UF por el monto ingresado.
+      </p>
+    </section>
+
+  </main>
+
+  
+</BaseLayout>
+<script is:inline define:vars={{ ufValue }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("ufInput");
+    const result = document.getElementById("result");
+    const copyBtn = document.getElementById("copyBtn");
+
+    function formatCLP(value) {
+      return "$" + value.toLocaleString("es-CL", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+    }
+
+    function calc() {
+      const ufAmount = Number(input.value.replace(",", "."));
+
+      if (isNaN(ufAmount) || ufAmount <= 0) {
+        result.innerText = "—";
+        return;
+      }
+
+      const clp = ufAmount * ufValue;
+      result.innerText = formatCLP(clp);
+    }
+
+    input.addEventListener("input", calc);
+
+    copyBtn.addEventListener("click", async () => {
+      const text = result.innerText;
+
+      if (!text || text === "—") return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.innerText = "Copiado ✓";
+
+        setTimeout(() => {
+          copyBtn.innerText = "Copiar";
+        }, 1200);
+      } catch (err) {
+        console.error("No se pudo copiar:", err);
+      }
+    });
+  });
