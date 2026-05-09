@@ -1,9 +1,9 @@
-name: Update JSON daily
+name: Update Finance Data
 
 on:
   schedule:
-    - cron: "0 3 * * *"
-  workflow_dispatch:
+    - cron: "0 3 * * *"  # todos los días 03:00 UTC
+  workflow_dispatch:     # ejecución manual
 
 jobs:
   update:
@@ -16,10 +16,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt || true
+        run: pip install -r requirements.txt
 
       - name: Run script
         run: python scripts/update-finance.py
