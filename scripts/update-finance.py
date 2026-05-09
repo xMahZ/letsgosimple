@@ -1,10 +1,14 @@
 import json
 import bcchapi
 from datetime import datetime, timedelta
+import os
 
 UF_SERIE = "F073.UFF.PRE.Z.D"
 USD_SERIE = "F073.TCO.PRE.Z.D"
 UTM_SERIE = "F073.UTR.PRE.Z.M"
+
+usr = os.getenv("BCCH_USER")
+pwd = os.getenv("BCCH_PASS")
 
 def get_last_value(siete, series_id, days_back=60):
     hoy = datetime.today()
@@ -26,7 +30,7 @@ def get_last_value(siete, series_id, days_back=60):
 
 
 def main():
-    siete = bcchapi.Siete(file="credenciales.txt")
+    siete = bcchapi.Siete(usr=usr, pwd=pwd)
 
     uf_date, uf_value = get_last_value(siete, UF_SERIE, days_back=30)
     usd_date, usd_value = get_last_value(siete, USD_SERIE, days_back=30)
