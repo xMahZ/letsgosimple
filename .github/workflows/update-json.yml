@@ -3,7 +3,7 @@ name: Update Finance Data
 on:
   schedule:
     - cron: "0 3 * * *"  # todos los días 03:00 UTC
-  workflow_dispatch:     # ejecución manual
+  workflow_dispatch:
 
 jobs:
   update:
@@ -21,8 +21,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run script
+      - name: Run finance script
         run: python scripts/update-finance.py
+        env:
+          BCCH_USER: ${{ secrets.BCCH_USER }}
+          BCCH_PASS: ${{ secrets.BCCH_PASS }}
 
       - name: Commit changes
         run: |
