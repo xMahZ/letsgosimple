@@ -2,8 +2,8 @@ name: Update JSON daily
 
 on:
   schedule:
-    - cron: "0 3 * * *"  # todos los días a las 03:00 UTC
-  workflow_dispatch:     # opcional: correr manualmente
+    - cron: "0 3 * * *"
+  workflow_dispatch:
 
 jobs:
   update:
@@ -13,21 +13,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: npm install
+        run: pip install -r requirements.txt || true
 
       - name: Run script
-        run: node tu-script.js
+        run: python scripts/update-finance.py
 
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git diff --cached --quiet || git commit -m "chore: update json daily"
+          git diff --cached --quiet || git commit -m "chore: update finance data"
           git push
