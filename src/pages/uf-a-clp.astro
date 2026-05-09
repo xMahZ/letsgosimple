@@ -3,6 +3,12 @@ import BaseLayout from "../layouts/baselayout.astro";
 import data from "../../data/cl-finance.json";
 
 const ufValue = data.rates.uf.value_clp;
+const updatedAtraw = data.updated_at;
+const updatedAt = new Date(updatedAtraw).toLocaleDateString("es-CL", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric"
+});
 ---
 
 <BaseLayout title="UF a CLP | Conversor UF a Peso Chileno">
@@ -19,11 +25,14 @@ const ufValue = data.rates.uf.value_clp;
     <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
 
       <div class="text-sm text-slate-400 mb-2">
-        Valor UF actual:
-        <span class="text-blue-400">
-          ${ufValue.toLocaleString("es-CL")}
-        </span>
-      </div>
+  Valor UF actual:
+  <span class="text-blue-400">
+    ${ufValue.toLocaleString("es-CL")}
+  </span>
+  <span class="text-slate-500">
+    - Actualizado al {updatedAt}
+  </span>
+</div>
 
       <label class="block text-sm text-slate-300 mb-2">
         Ingresa UF
