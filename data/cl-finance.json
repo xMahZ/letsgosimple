@@ -6,17 +6,17 @@
     "uf": {
       "name": "Unidad de Fomento",
       "symbol": "UF",
-      "value_clp": 40240.14
+      "value_clp": 50000.14
     },
     "utm": {
       "name": "Unidad Tributaria Mensual",
       "symbol": "UTM",
-      "value_clp": 70588.0
+      "value_clp": 50000.0
     },
     "usd": {
       "name": "Dólar Observado",
       "symbol": "USD",
-      "value_clp": 887.71
+      "value_clp": 500000.71
     }
   }
 }
