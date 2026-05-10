@@ -20,10 +20,19 @@ const herramientas = [
 ];
 
 import data from "../../data/cl-finance.json";
-const date = data.updated_at;
-const uf = data.rates.uf.value_clp;
-const usd = data.rates.usd.value_clp;
-const utm = data.rates.utm.value_clp;
+const latest = data.rates_history[0];
+
+const date = latest.date;
+const uf = latest.uf;
+const usd = latest.usd;
+const utm = latest.utm;
+
+const updatedAt = new Date(date + "T00:00:00").toLocaleDateString("es-CL", {
+  timeZone: "America/Santiago",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric"
+});
 ---
 
 <BaseLayout

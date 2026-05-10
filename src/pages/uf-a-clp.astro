@@ -2,13 +2,27 @@
 import BaseLayout from "../layouts/baselayout.astro";
 import data from "../../data/cl-finance.json";
 
-const ufValue = data.rates.uf.value_clp;
-const updatedAtraw = data.updated_at;
-const updatedAt = new Date(updatedAtraw).toLocaleDateString("es-CL", {
+const ufValue = data.latest.uf;
+const updatedAtraw = data.latest.date;
+const updatedAt = new Date(updatedAtraw + "T00:00:00").toLocaleDateString("es-CL", {
+  timeZone: "America/Santiago",
   day: "2-digit",
   month: "2-digit",
   year: "numeric"
 });
+
+// UF hace 7 días (el más antiguo del array)
+const ufOld = data.rates_history[data.rates_history.length - 1].uf;
+
+// variación %
+const ufVariationPct = ((ufValue - ufOld) / ufOld) * 100;
+
+// texto con + o -
+const ufVariationText = `${ufVariationPct >= 0 ? "+" : ""}${ufVariationPct.toFixed(2)}%`;
+
+// clase color
+const ufVariationClass =
+  ufVariationPct >= 0 ? "text-green-400" : "text-red-400";
 ---
 
 <BaseLayout title="UF a CLP | Conversor UF a Peso Chileno">
@@ -24,13 +38,18 @@ const updatedAt = new Date(updatedAtraw).toLocaleDateString("es-CL", {
 
     <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
 
-      <div class="text-sm text-slate-400 mb-2">
+<div class="text-sm text-slate-400 mb-2">
   Valor UF actual:
   <span class="text-blue-400">
     ${ufValue.toLocaleString("es-CL")}
   </span>
+
   <span class="text-slate-500">
     - Actualizado al {updatedAt}
+  </span>
+
+  <span class={ufVariationClass}>
+    ({ufVariationText} últimos 7 días)
   </span>
 </div>
 

@@ -1,22 +1,54 @@
 {
   "country": "CL",
   "currency": "CLP",
-  "updated_at": "2026-05-10",
-  "rates": {
-    "uf": {
-      "name": "Unidad de Fomento",
-      "symbol": "UF",
-      "value_clp": 40256.91
+  "rates_history": [
+    {
+      "date": "2026-05-10",
+      "uf": 40256.91,
+      "utm": 70588.0,
+      "usd": 887.71
     },
-    "utm": {
-      "name": "Unidad Tributaria Mensual",
-      "symbol": "UTM",
-      "value_clp": 70588.0
+    {
+      "date": "2026-05-09",
+      "uf": 40240.14,
+      "utm": 70588.0,
+      "usd": 887.71
     },
-    "usd": {
-      "name": "Dólar Observado",
-      "symbol": "USD",
-      "value_clp": 887.71
+    {
+      "date": "2026-05-08",
+      "uf": 40210.52,
+      "utm": 70530.0,
+      "usd": 885.40
+    },
+    {
+      "date": "2026-05-07",
+      "uf": 40185.33,
+      "utm": 70490.0,
+      "usd": 883.12
+    },
+    {
+      "date": "2026-05-06",
+      "uf": 40160.88,
+      "utm": 70450.0,
+      "usd": 881.05
+    },
+    {
+      "date": "2026-05-05",
+      "uf": 40135.20,
+      "utm": 70410.0,
+      "usd": 879.30
+    },
+    {
+      "date": "2026-05-04",
+      "uf": 40110.75,
+      "utm": 70370.0,
+      "usd": 877.85
     }
+  ],
+  "latest": {
+    "date": "2026-05-10",
+    "uf": 40256.91,
+    "utm": 70588.0,
+    "usd": 887.71
   }
 }
