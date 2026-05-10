@@ -10,6 +10,9 @@ UTM_SERIE = "F073.UTR.PRE.Z.M"
 usr = os.getenv("BCCH_USER")
 pwd = os.getenv("BCCH_PASS")
 
+JSON_PATH = "data/cl-finance.json"
+
+
 def get_last_value(siete, series_id, days_back=60):
     hoy = datetime.today()
     desde = (hoy - timedelta(days=days_back)).strftime("%Y-%m-%d")
@@ -29,6 +32,16 @@ def get_last_value(siete, series_id, days_back=60):
     return last_date.strftime("%Y-%m-%d"), last_value
 
 
+def load_existing():
+    if not os.path.exists(JSON_PATH):
+        return []
+
+    with open(JSON_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    return data.get("rates_history", [])
+
+
 def main():
     siete = bcchapi.Siete(usr=usr, pwd=pwd)
 
@@ -36,33 +49,41 @@ def main():
     usd_date, usd_value = get_last_value(siete, USD_SERIE, days_back=30)
     utm_date, utm_value = get_last_value(siete, UTM_SERIE, days_back=400)
 
-    # Fecha más reciente entre las 3 (lo correcto)
-    updated_at = max(uf_date, usd_date, utm_date)
+    # Fecha más reciente entre las 3
+    latest_date = max(uf_date, usd_date, utm_date)
+
+    latest_entry = {
+        "date": latest_date,
+        "uf": uf_value,
+        "utm": utm_value,
+        "usd": usd_value
+    }
+
+    history = load_existing()
+
+    # Insertar el nuevo día arriba
+    history.insert(0, latest_entry)
+
+    # Eliminar duplicados por fecha (mantener el más reciente)
+    seen = set()
+    cleaned_history = []
+    for item in history:
+        d = item.get("date")
+        if d and d not in seen:
+            cleaned_history.append(item)
+            seen.add(d)
+
+    # Mantener solo 7 días
+    cleaned_history = cleaned_history[:7]
 
     output = {
         "country": "CL",
         "currency": "CLP",
-        "updated_at": updated_at,
-        "rates": {
-            "uf": {
-                "name": "Unidad de Fomento",
-                "symbol": "UF",
-                "value_clp": uf_value
-            },
-            "utm": {
-                "name": "Unidad Tributaria Mensual",
-                "symbol": "UTM",
-                "value_clp": utm_value
-            },
-            "usd": {
-                "name": "Dólar Observado",
-                "symbol": "USD",
-                "value_clp": usd_value
-            }
-        }
+        "rates_history": cleaned_history,
+        "latest": cleaned_history[0]
     }
 
-    with open("data/cl-finance.json", "w", encoding="utf-8") as f:
+    with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
     print("Actualizado OK:")
