@@ -1,12 +1,12 @@
 {
   "country": "CL",
   "currency": "CLP",
-  "updated_at": "2026-05-09",
+  "updated_at": "2026-05-10",
   "rates": {
     "uf": {
       "name": "Unidad de Fomento",
       "symbol": "UF",
-      "value_clp": 40240.14
+      "value_clp": 40256.91
     },
     "utm": {
       "name": "Unidad Tributaria Mensual",
