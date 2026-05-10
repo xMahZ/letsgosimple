@@ -25,13 +25,13 @@ const ufVariationClass =
 
 <BaseLayout title="UF a CLP | Conversor UF a Peso Chileno">
   <main class="max-w-2xl mx-auto px-4 py-12">
-    <h1 class="text-3xl font-semibold tracking-tight text-white">
-      UF a CLP
-    </h1>
+<h1 id="pageTitle" class="text-3xl font-semibold tracking-tight text-white">
+  UF a CLP
+</h1>
 
-    <p class="mt-2 text-slate-400">
-      Conversor rápido de Unidad de Fomento a Peso Chileno.
-    </p>
+<p id="pageDesc" class="mt-2 text-slate-400">
+  Conversor rápido de Unidad de Fomento a Peso Chileno.
+</p>
 
     <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
       <div class="text-sm text-slate-400 mb-4">
@@ -110,6 +110,8 @@ const ufVariationClass =
 
 <script is:inline define:vars={{ ufValue }}>
   document.addEventListener("DOMContentLoaded", () => {
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
     const input = document.getElementById("ufInput");
     const result = document.getElementById("result");
     const copyBtn = document.getElementById("copyBtn");
@@ -156,15 +158,23 @@ const ufVariationClass =
       }
     }
 
-    function updateUI() {
-      if (mode === "UF_TO_CLP") {
-        inputLabel.innerText = "Ingresa UF";
-        input.placeholder = "Ej: 2.5 UF";
-      } else {
-        inputLabel.innerText = "Ingresa CLP";
-        input.placeholder = "Ej: 500000";
-      }
-    }
+function updateUI() {
+  if (mode === "UF_TO_CLP") {
+    inputLabel.innerText = "Ingresa UF";
+    input.placeholder = "Ej: 2.5 UF";
+
+    pageTitle.innerText = "UF a CLP";
+    pageDesc.innerText =
+      "Conversor rápido de Unidad de Fomento a Peso Chileno.";
+  } else {
+    inputLabel.innerText = "Ingresa CLP";
+    input.placeholder = "Ej: 500000";
+
+    pageTitle.innerText = "CLP a UF";
+    pageDesc.innerText =
+      "Conversor rápido de Peso Chileno a Unidad de Fomento.";
+  }
+}
 
     swapBtn.addEventListener("click", () => {
       const currentValue = input.value;
