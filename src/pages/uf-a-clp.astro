@@ -3,13 +3,11 @@ import BaseLayout from "../layouts/baselayout.astro";
 import data from "../../data/cl-finance.json";
 
 const ufValue = data.latest.uf;
-const updatedAtraw = data.latest.date;
-const updatedAt = new Date(updatedAtraw + "T00:00:00").toLocaleDateString("es-CL", {
-  timeZone: "America/Santiago",
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric"
-});
+const updatedAtraw = data.latest.date; // "2026-05-10"
+
+const [year, month, day] = updatedAtraw.split("-");
+
+const updatedAt = `${day}-${month}-${year}`;
 
 // UF hace 7 días (el más antiguo del array)
 const ufOld = data.rates_history[data.rates_history.length - 1].uf;
