@@ -1,0 +1,46 @@
+<header class="w-full sticky top-0 z-50 border-b border-white/10 bg-[#070b16]">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <!-- Brand -->
+    <a href="/" class="text-slate-100 font-semibold text-lg"> LetsGoSimple </a>
+
+    <!-- Dropdown -->
+    <div class="relative">
+      <!-- Button -->
+      <button
+        id="menuBtn"
+        class="text-slate-300 hover:text-white text-sm flex items-center gap-1"
+      >
+        Secciones <span class="text-xs">▾</span>
+      </button>
+
+      <!-- Menu -->
+      <div
+        id="menu"
+        class="absolute right-0 mt-2 w-44 bg-[#0f172a] border border-white/10 rounded-md shadow-lg
+               opacity-0 scale-95 pointer-events-none
+               transition-all duration-150 origin-top-right"
+      >
+        <a
+          href="/finanzas"
+          class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5"
+        >
+          Finanzas
+        </a>
+
+        <a
+          href="/matematica"
+          class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5"
+        >
+          Matemática
+        </a>
+
+        <a
+          href="/conversores"
+          class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5"
+        >
+          Conversores
+        </a>
+      </div>
+    </div>
+  </div>
+</header>

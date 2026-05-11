@@ -1,110 +1,61 @@
 ---
 import "../styles/global.css";
+import Header from "../components/header.astro";
+import Footer from "../components/footer.astro";
 interface Props {
   title: string;
   description?: string;
 }
 
-const {
-  title,
-  description = "Herramientas rápidas y simples."
-} = Astro.props;
-
+const { title, description = "Herramientas rápidas y simples." } = Astro.props;
 ---
 
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width"
-    />
-
+    <meta name="viewport" content="width=device-width" />
 
     <title>{title}</title>
 
-    <meta
-      name="description"
-      content={description}
-    />
+    <meta name="description" content={description} />
   </head>
-  <body class="min-h-screen text-slate-100 bg-gradient-to-b from-[#0b1020] via-[#0a0f1a] to-[#050814]">
-  <header class="w-full sticky top-0 z-50 border-b border-white/10 bg-[#070b16]">
+  <body
+    class="min-h-screen text-slate-100 bg-gradient-to-b from-[#0b1020] via-[#0a0f1a] to-[#050814]"
+  >
+    <Header />
 
-  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <script id="navbar_toggle">
+      const btn = document.getElementById("menuBtn");
+      const menu = document.getElementById("menu");
 
-    <!-- Brand -->
-    <a href="/" class="text-slate-100 font-semibold text-lg">
-      LetsGoSimple
-    </a>
+      let open = false;
 
-    <!-- Dropdown -->
-    <div class="relative">
+      function setMenu(state) {
+        open = state;
 
-      <!-- Button -->
-      <button id="menuBtn"
-        class="text-slate-300 hover:text-white text-sm flex items-center gap-1">
-        Secciones <span class="text-xs">▾</span>
-      </button>
+        if (open) {
+          menu.classList.remove("opacity-0", "scale-95", "pointer-events-none");
+          menu.classList.add("opacity-100", "scale-100");
+        } else {
+          menu.classList.add("opacity-0", "scale-95", "pointer-events-none");
+          menu.classList.remove("opacity-100", "scale-100");
+        }
+      }
 
-      <!-- Menu -->
-      <div id="menu"
-        class="absolute right-0 mt-2 w-44 bg-[#0f172a] border border-white/10 rounded-md shadow-lg
-               opacity-0 scale-95 pointer-events-none
-               transition-all duration-150 origin-top-right">
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setMenu(!open);
+      });
 
-        <a href="/finanzas" class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5">
-          Finanzas
-        </a>
+      document.addEventListener("click", () => {
+        setMenu(false);
+      });
 
-        <a href="/matematica" class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5">
-          Matemática
-        </a>
-
-        <a href="/conversores" class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5">
-          Conversores
-        </a>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</header>
-
-<script id="navbar_toggle">
-  const btn = document.getElementById("menuBtn");
-  const menu = document.getElementById("menu");
-
-  let open = false;
-
-  function setMenu(state) {
-    open = state;
-
-    if (open) {
-      menu.classList.remove("opacity-0", "scale-95", "pointer-events-none");
-      menu.classList.add("opacity-100", "scale-100");
-    } else {
-      menu.classList.add("opacity-0", "scale-95", "pointer-events-none");
-      menu.classList.remove("opacity-100", "scale-100");
-    }
-  }
-
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    setMenu(!open);
-  });
-
-  document.addEventListener("click", () => {
-    setMenu(false);
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") setMenu(false);
-  });
-</script>
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") setMenu(false);
+      });
+    </script>
     <slot />
+    <Footer />
   </body>
 </html>
-
