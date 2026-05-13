@@ -13,7 +13,10 @@ pwd = os.getenv("BCCH_PASS")
 JSON_PATH = "data/cl-finance.json"
 
 
-def get_last_value(siete, series_id, days_back=60):
+# ---------------------------
+# UTIL: FETCH BCCH
+# ---------------------------
+def fetch_last(siete, series_id, days_back=30):
     hoy = datetime.today()
     desde = (hoy - timedelta(days=days_back)).strftime("%Y-%m-%d")
     hasta = hoy.strftime("%Y-%m-%d")
@@ -23,71 +26,159 @@ def get_last_value(siete, series_id, days_back=60):
         nombres=["value"],
         desde=desde,
         hasta=hasta
-    )
+    ).dropna()
 
-    df = df.dropna()
     last_date = df.index[-1]
     last_value = float(df["value"].iloc[-1])
 
     return last_date.strftime("%Y-%m-%d"), last_value
 
 
-def load_existing():
+# ---------------------------
+# LOAD JSON
+# ---------------------------
+def load_json():
     if not os.path.exists(JSON_PATH):
-        return []
+        return {
+            "country": "CL",
+            "currency": "CLP",
+            "rates_history": []
+        }
 
     with open(JSON_PATH, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    return data.get("rates_history", [])
+        return json.load(f)
 
 
+# ---------------------------
+# UPSERT HISTORY
+# ---------------------------
+def upsert(history, new_entry):
+    data = {item["date"]: item for item in history}
+    data[new_entry["date"]] = new_entry
+    return sorted(data.values(), key=lambda x: x["date"], reverse=True)
+
+
+# ---------------------------
+# GET VALUE N DAYS AGO (relative to base_date)
+# ---------------------------
+def get_value_days(history, base_date, days, key):
+    base = datetime.strptime(base_date, "%Y-%m-%d")
+    target = base - timedelta(days=days)
+
+    best = None
+
+    for r in history:
+        d = datetime.strptime(r["date"], "%Y-%m-%d")
+
+        if d <= target:
+            if not best or d > datetime.strptime(best["date"], "%Y-%m-%d"):
+                best = r
+
+    if not best:
+        return None, None
+
+    return best.get(key), best["date"]
+
+
+# ---------------------------
+# VARIATION CALC
+# ---------------------------
+def variation(latest, past):
+    if past is None or past == 0:
+        return None
+    return ((latest - past) / past) * 100
+
+
+# ---------------------------
+# MAIN
+# ---------------------------
 def main():
-    siete = bcchapi.Siete(usr=usr, pwd=pwd)
+    bcch = bcchapi.Siete(usr=usr, pwd=pwd)
 
-    uf_date, uf_value = get_last_value(siete, UF_SERIE, days_back=30)
-    usd_date, usd_value = get_last_value(siete, USD_SERIE, days_back=30)
-    utm_date, utm_value = get_last_value(siete, UTM_SERIE, days_back=400)
+    uf_date, uf = fetch_last(bcch, UF_SERIE, days_back=60)
+    usd_date, usd = fetch_last(bcch, USD_SERIE, days_back=60)
+    utm_date, utm = fetch_last(bcch, UTM_SERIE, days_back=400)
 
-    # Fecha más reciente entre las 3
+    # Fecha principal del JSON (lo más reciente disponible)
     latest_date = max(uf_date, usd_date, utm_date)
 
-    latest_entry = {
-        "date": latest_date,
-        "uf": uf_value,
-        "utm": utm_value,
-        "usd": usd_value
+    # ---------------------------
+    # LOAD + UPSERT HISTORY
+    # ---------------------------
+    data = load_json()
+    history = data.get("rates_history", [])
+
+    # Guardamos por fecha de UF (porque UF es diaria y define el historial diario)
+    # Si mañana cambia solo el USD pero UF no, igual el historial seguirá ordenado por UF.
+    new_entry = {
+        "date": uf_date,
+        "uf": uf,
+        "usd": usd,
+        "utm": utm
     }
 
-    history = load_existing()
+    history = upsert(history, new_entry)
 
-    # Insertar el nuevo día arriba
-    history.insert(0, latest_entry)
+    # ---------------------------
+    # BUILD VARIATIONS (with real base date)
+    # ---------------------------
+    def build_variations(key, base_date, latest_value):
+        v7, d7 = get_value_days(history, base_date, 7, key)
+        v30, d30 = get_value_days(history, base_date, 30, key)
+        v60, d60 = get_value_days(history, base_date, 60, key)
 
-    # Eliminar duplicados por fecha (mantener el más reciente)
-    seen = set()
-    cleaned_history = []
-    for item in history:
-        d = item.get("date")
-        if d and d not in seen:
-            cleaned_history.append(item)
-            seen.add(d)
+        return {
+            "7d": {
+                "value": v7,
+                "pct": variation(latest_value, v7),
+                "date": d7
+            },
+            "30d": {
+                "value": v30,
+                "pct": variation(latest_value, v30),
+                "date": d30
+            },
+            "60d": {
+                "value": v60,
+                "pct": variation(latest_value, v60),
+                "date": d60
+            }
+        }
 
-    # Mantener solo 7 días
-    cleaned_history = cleaned_history[:7]
+    # ---------------------------
+    # LATEST FORMAT (with per-indicator date)
+    # ---------------------------
+    latest = {
+        "date": latest_date,
+
+        "uf": uf,
+        "usd": usd,
+        "utm": utm,
+
+        "dates": {
+            "uf": uf_date,
+            "usd": usd_date,
+            "utm": utm_date
+        },
+
+        "variations": {
+            "uf": build_variations("uf", uf_date, uf),
+            "usd": build_variations("usd", usd_date, usd),
+            "utm": build_variations("utm", utm_date, utm)
+        }
+    }
 
     output = {
         "country": "CL",
         "currency": "CLP",
-        "rates_history": cleaned_history,
-        "latest": cleaned_history[0]
+        "rates_history": history,
+        "latest": latest
     }
 
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
-    print("Actualizado OK:")
-    print(output)
+    print("OK actualizado")
 
 
 if __name__ == "__main__":
