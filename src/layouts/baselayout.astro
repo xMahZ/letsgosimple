@@ -18,6 +18,8 @@ const { title, description = "Herramientas rápidas y simples." } = Astro.props;
     <title>{title}</title>
 
     <meta name="description" content={description} />
+
+    <slot name="head" />
   </head>
   <body
     class="min-h-screen text-slate-100 bg-gradient-to-b from-[#0b1020] via-[#0a0f1a] to-[#050814]"
