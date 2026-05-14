@@ -1,104 +1,199 @@
 ---
 import BaseLayout from "../layouts/baselayout.astro";
+import data from "../../data/cl-finance.json";
+
 const herramientas = [
   {
     nombre: "UF a Peso",
     descripcion: "Convierte UF a pesos chilenos rápidamente.",
-    url: "/cl/fn/uf-a-peso"
+    url: "/cl/fn/uf-a-peso",
+    tag: "Finanzas",
   },
-
   {
     nombre: "Sueldo Líquido",
     descripcion: "Calcula tu sueldo líquido en Chile.",
-    url: "/cl/emp/sueldo-liquido"
+    url: "/cl/emp/sueldo-liquido",
+    tag: "Trabajo",
   },
   {
     nombre: "Porcentaje",
     descripcion: "Calcula porcentajes simples.",
-    url: "/cl/util/porcentaje"
-  }
+    url: "/cl/util/porcentaje",
+    tag: "Utilidad",
+  },
 ];
 
-import data from "../../data/cl-finance.json";
-const latest = data.rates_history[0];
+const latest = data.latest;
 
-const date = latest.date;
 const uf = latest.uf;
 const usd = latest.usd;
 const utm = latest.utm;
 
-const updatedAt = new Date(date + "T00:00:00").toLocaleDateString("es-CL", {
-  timeZone: "America/Santiago",
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric"
-});
+// fecha general (la del bloque latest)
+const updatedAt = new Date(latest.date + "T00:00:00").toLocaleDateString(
+  "es-CL",
+  {
+    timeZone: "America/Santiago",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  },
+);
+
+// fechas específicas si quieres mostrarlas luego
+const ufDate = latest.dates.uf;
+const usdDate = latest.dates.usd;
+const utmDate = latest.dates.utm;
 ---
 
 <BaseLayout
   title="LetsGoSimple"
-  description="Herramientas rápidas y simples para Chile."
+  description="Un hub de herramientas simples y rápidas para Chile."
 >
   <main class="max-w-5xl mx-auto px-6 py-16">
+    <!-- HERO -->
     <section class="text-center">
-      <h1 class="text-6xl font-bold tracking-tight">
-        LetsGoSimple
-      </h1>
+      <h1 class="text-6xl font-bold tracking-tight">LetsGoSimple</h1>
+
       <p class="mt-6 text-xl text-gray-600 max-w-2xl mx-auto">
-        Herramientas rápidas, simples y útiles.
-        Sin distracciones.
+        Un hub de herramientas rápidas para Chile. Finanzas, trabajo, cálculos y
+        utilidades del día a día. Sin ruido. Sin vueltas.
       </p>
-      <div class="mt-10">
+
+      <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+        <a
+          href="#herramientas"
+          class="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:opacity-90 transition"
+        >
+          Ver herramientas
+        </a>
+
+        <a
+          href="#proximamente"
+          class="px-6 py-3 rounded-2xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition"
+        >
+          Próximamente
+        </a>
       </div>
     </section>
-    <section class="text-center">
-  <div class="mt-2 grid gap-5">
 
-    <div class="p-4 rounded-lg border border-white/10 bg-white/5">
-      <div class="text-sm text-slate-400">UF</div>
-      <div id="uf" class="text-xl text-white">UF: ${uf.toLocaleString("es-CL")}</div>
-    </div>
+    <!-- QUICK VALUES -->
+    <section class="mt-20">
+      <div class="flex items-end justify-between gap-6 flex-wrap">
+        <div>
+          <h2 class="text-2xl font-bold">Valores rápidos</h2>
+          <p class="mt-2 text-gray-500">
+            Referencias útiles para cálculos rápidos.
+          </p>
+        </div>
 
-    <div class="p-4 rounded-lg border border-white/10 bg-white/5">
-      <div class="text-sm text-slate-400">USD</div>
-      <div id="usd" class="text-xl text-white">USD: ${usd.toLocaleString("es-CL")}</div>
-    </div>
+        <div class="text-sm text-slate-400">
+          Actualizado: <span class="text-white">{updatedAt}</span>
+        </div>
+      </div>
 
-    <div class="p-4 rounded-lg border border-white/10 bg-white/5">
-      <div class="text-sm text-slate-400">UTM</div>
-      <div id="utm" class="text-xl text-white">UTM: ${utm.toLocaleString("es-CL")}</div>
-    </div>
-<div class="p-1 rounded-lg border border-white/10 bg-white/5">
-      <div class="text-sm text-slate-300">Cifras actualizadas al:</div>
-      <div id="uf" class="text text-white">{date.toLocaleString("es-CL")}</div>
-    </div>
-  </div>
+      <div class="mt-8 grid sm:grid-cols-3 gap-5">
+        <div class="p-5 rounded-2xl border border-white/10 bg-white/5">
+          <div class="text-sm text-slate-400">UF</div>
+          <div class="mt-2 text-2xl font-semibold text-white">
+            ${uf.toLocaleString("es-CL")}
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl border border-white/10 bg-white/5">
+          <div class="text-sm text-slate-400">USD</div>
+          <div class="mt-2 text-2xl font-semibold text-white">
+            ${usd.toLocaleString("es-CL")}
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl border border-white/10 bg-white/5">
+          <div class="text-sm text-slate-400">UTM</div>
+          <div class="mt-2 text-2xl font-semibold text-white">
+            ${utm.toLocaleString("es-CL")}
+          </div>
+        </div>
+      </div>
     </section>
-    <section id="herramientas" class="mt-24">
-      <h2 class="text-3xl font-bold">
-        Herramientas
-      </h2>
+
+    <!-- HUB SECTIONS -->
+    <section class="mt-24">
+      <h2 class="text-3xl font-bold">¿Qué encontrarás aquí?</h2>
+      <p class="mt-4 text-gray-600 max-w-3xl">
+        LetsGoSimple está pensado como un lugar donde puedas resolver cosas
+        rápidas: cálculos, conversiones, información útil y herramientas
+        prácticas para Chile.
+      </p>
+
       <div class="grid md:grid-cols-3 gap-6 mt-10">
-        {
-          herramientas.map((h) => (
-            <a
-              href={h.url}
-              class="border rounded-2xl p-6 hover:shadow-lg transition"
-            >
-              <h3 class="text-2xl font-semibold">
-                {h.nombre}
-              </h3>
-              <p class="mt-3 text-gray-600">
-                {h.descripcion}
-              </p>
-            </a>
-          ))
-        }
+        <div class="border rounded-2xl p-6 bg-white/5 border-white/10">
+          <h3 class="text-xl font-semibold text-white">Finanzas</h3>
+          <p class="mt-3 text-gray-600">
+            Conversores, indicadores y herramientas para entender números sin
+            complicarte.
+          </p>
+        </div>
+
+        <div class="border rounded-2xl p-6 bg-white/5 border-white/10">
+          <h3 class="text-xl font-semibold text-white">Trabajo</h3>
+          <p class="mt-3 text-gray-600">
+            Sueldo líquido, cálculos laborales y utilidades para tu vida
+            profesional.
+          </p>
+        </div>
+
+        <div class="border rounded-2xl p-6 bg-white/5 border-white/10">
+          <h3 class="text-xl font-semibold text-white">Utilidades</h3>
+          <p class="mt-3 text-gray-600">
+            Porcentajes, descuentos, IVA, conversiones y cálculos simples.
+          </p>
+        </div>
       </div>
     </section>
-    <footer class="mt-32 pt-10 border-t text-sm text-gray-500">
-      © 2026 LetsGoSimple
-    </footer>
+
+    <!-- COMING SOON -->
+    <section id="proximamente" class="mt-24">
+      <h2 class="text-3xl font-bold">Próximamente</h2>
+      <p class="mt-4 text-gray-600 max-w-3xl">
+        Este sitio irá creciendo como un hub. La idea es sumar herramientas
+        útiles para el día a día, con cálculos claros y sin letra chica.
+      </p>
+
+      <div class="grid md:grid-cols-2 gap-6 mt-10">
+        <div class="border border-white/10 bg-white/5 rounded-2xl p-6">
+          <h3 class="text-xl font-semibold text-white">Calculadoras rápidas</h3>
+          <p class="mt-3 text-gray-600">
+            IVA, descuentos, intereses simples, cuotas, propinas y conversiones.
+          </p>
+        </div>
+
+        <div class="border border-white/10 bg-white/5 rounded-2xl p-6">
+          <h3 class="text-xl font-semibold text-white">
+            Herramientas para trámites
+          </h3>
+          <p class="mt-3 text-gray-600">
+            Guías y cálculos referenciales para ayudarte a entender procesos
+            comunes.
+          </p>
+        </div>
+
+        <div class="border border-white/10 bg-white/5 rounded-2xl p-6">
+          <h3 class="text-xl font-semibold text-white">
+            Datos útiles de Chile
+          </h3>
+          <p class="mt-3 text-gray-600">
+            Indicadores, valores históricos y comparaciones fáciles de leer.
+          </p>
+        </div>
+
+        <div class="border border-white/10 bg-white/5 rounded-2xl p-6">
+          <h3 class="text-xl font-semibold text-white">Más categorías</h3>
+          <p class="mt-3 text-gray-600">
+            Educación, productividad, hogar y cualquier herramienta que tenga
+            sentido.
+          </p>
+        </div>
+      </div>
+    </section>
   </main>
 </BaseLayout>
-
