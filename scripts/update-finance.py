@@ -10,7 +10,8 @@ UTM_SERIE = "F073.UTR.PRE.Z.M"
 usr = os.getenv("BCCH_USER")
 pwd = os.getenv("BCCH_PASS")
 
-JSON_PATH = "@/data/cl-finance.json"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+JSON_PATH = os.path.join(BASE_DIR, "src", "data", "cl-finance.json")
 
 
 # ---------------------------
