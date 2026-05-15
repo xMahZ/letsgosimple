@@ -10,7 +10,7 @@ UTM_SERIE = "F073.UTR.PRE.Z.M"
 usr = os.getenv("BCCH_USER")
 pwd = os.getenv("BCCH_PASS")
 
-JSON_PATH = "data/cl-finance.json"
+JSON_PATH = "@/data/cl-finance.json"
 
 
 # ---------------------------
