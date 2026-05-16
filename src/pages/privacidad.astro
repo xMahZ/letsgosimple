@@ -1,155 +1,101 @@
 ---
 import BaseLayout from "../layouts/baselayout.astro";
+
+const updated = new Date().toLocaleDateString("es-CL", {
+  timeZone: "America/Santiago",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+const items = [
+  {
+    n: "01",
+    title: "No pedimos datos",
+    text: "No hay registro, no hay formularios, no guardamos tu nombre ni RUT. Solo usamos datos técnicos mínimos (IP parcial, navegador) con fines estadísticos.",
+  },
+  {
+    n: "02",
+    title: "Cookies",
+    text: "Usamos cookies para medir visitas y rendimiento. Puedes desactivarlas desde tu navegador; algunas funciones podrían verse limitadas.",
+  },
+  {
+    n: "03",
+    title: "Analítica",
+    text: "Medimos qué herramientas se usan más para mejorar el sitio. La información es agregada y no identifica a nadie.",
+  },
+  {
+    n: "04",
+    title: "Publicidad",
+    text: "En el futuro podríamos incluir anuncios. Si eso ocurre, esta política se actualizará para reflejarlo.",
+  },
+  {
+    n: "05",
+    title: "Los datos son referenciales",
+    text: "Los valores financieros (UF, USD, UTM…) provienen de fuentes públicas. Son informativos, no constituyen asesoría financiera ni legal.",
+  },
+  {
+    n: "06",
+    title: "Cambios",
+    text: "Esta política puede cambiar. Siempre verás la fecha de última actualización aquí arriba.",
+  },
+];
 ---
 
 <BaseLayout
-  title="Política de Privacidad | LetsGoSimple"
-  description="Política de privacidad de LetsGoSimple. Información sobre datos, cookies y uso del sitio."
+  title="Privacidad | LetsGoSimple"
+  description="Política de privacidad de LetsGoSimple."
 >
-  <main class="max-w-4xl mx-auto px-6 py-16">
-    <section>
-      <h1 class="text-5xl font-bold tracking-tight">Política de Privacidad</h1>
+  <main class="max-w-3xl mx-auto px-6 py-20">
+    <!-- Header -->
+    <div class="mb-14">
+      <p class="text-xs uppercase tracking-widest text-slate-500 mb-4">Legal</p>
+      <h1 class="text-4xl font-bold text-slate-50 tracking-tight">
+        Privacidad
+      </h1>
+      <p class="mt-3 text-slate-400">Simple y directo, como todo acá.</p>
+      <p class="mt-2 text-xs text-slate-600">Actualizado: {updated}</p>
+    </div>
 
-      <p class="mt-6 text-slate-500 text-lg">
-        En LetsGoSimple valoramos tu privacidad. Esta política explica qué
-        información se recopila, cómo se usa y qué opciones tienes al usar este
-        sitio.
+    <!-- Items -->
+    <div class="space-y-8">
+      {
+        items.map((item) => (
+          <div class="flex gap-6 group">
+            <span class="text-xs font-mono text-slate-700 pt-1 shrink-0 w-6">
+              {item.n}
+            </span>
+            <div class="border-t border-slate-800 pt-4 flex-1">
+              <h2 class="text-sm font-semibold text-slate-200 mb-2">
+                {item.title}
+              </h2>
+              <p class="text-sm text-slate-500 leading-relaxed">{item.text}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Contact -->
+    <div class="mt-16 border-t border-slate-800 pt-10">
+      <p class="text-sm text-slate-500">
+        ¿Dudas? Escríbenos a{" "}
+        <a
+          href="mailto:contacto@letsgosimple.app"
+          class="text-slate-300 hover:text-white underline underline-offset-4 transition-colors"
+        >
+          contacto@letsgosimple.app
+        </a>
       </p>
+    </div>
 
-      <p class="mt-4 text-sm text-gray-500">
-        Última actualización: {
-          new Date().toLocaleDateString("es-CL", {
-            timeZone: "America/Santiago",
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
-        }
-      </p>
-    </section>
-
-    <section class="mt-16 space-y-10">
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">
-          1. Información que recopilamos
-        </h2>
-        <p class="mt-4 text-slate-500">
-          LetsGoSimple no solicita registro de usuarios ni recopila información
-          personal directamente (como nombre, RUT, dirección o correo) para el
-          uso normal del sitio.
-        </p>
-        <p class="mt-4 text-slate-500">
-          Sin embargo, el sitio puede recopilar información técnica mínima de
-          forma automática, como dirección IP parcial, tipo de navegador,
-          dispositivo y páginas visitadas, con fines estadísticos y de
-          seguridad.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl mt-4 font-semibold">2. Cookies</h2>
-        <p class="mt-4 text-slate-500">
-          Este sitio puede utilizar cookies o tecnologías similares para mejorar
-          el rendimiento, medir visitas y entender el uso general del sitio.
-        </p>
-        <p class="mt-4 text-slate-500">
-          Puedes desactivar las cookies desde la configuración de tu navegador.
-          Algunas funciones podrían verse limitadas si decides bloquearlas.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">3. Analítica y medición</h2>
-        <p class="mt-4 text-slate-500">
-          Podemos utilizar herramientas de analítica (por ejemplo, medición de
-          tráfico y rendimiento) para entender qué herramientas son más
-          utilizadas y mejorar el contenido.
-        </p>
-        <p class="mt-4 text-slate-500">
-          Esta información se usa de forma agregada y no busca identificar
-          personalmente a los usuarios.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">4. Publicidad</h2>
-        <p class="mt-4 text-slate-500">
-          En el futuro LetsGoSimple podría incluir publicidad o enlaces
-          patrocinados. En ese caso, proveedores externos podrían usar cookies
-          para mostrar anuncios relevantes.
-        </p>
-        <p class="mt-4 text-slate-500">
-          Si se habilita publicidad, esta política será actualizada para
-          reflejarlo.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">
-          5. Enlaces a sitios externos
-        </h2>
-        <p class="mt-4 text-slate-500">
-          Algunas páginas pueden contener enlaces a sitios externos (por
-          ejemplo, fuentes oficiales o herramientas de terceros). LetsGoSimple
-          no controla ni es responsable de las políticas de privacidad de esos
-          sitios.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">
-          6. Datos financieros y cálculos
-        </h2>
-        <p class="mt-4 text-slate-500">
-          Los valores mostrados (como UF, USD, UTM u otros indicadores) son
-          referenciales y se obtienen desde fuentes públicas o datos
-          disponibles. No garantizamos exactitud absoluta ni actualización en
-          tiempo real.
-        </p>
-        <p class="mt-4 text-slate-500">
-          Las herramientas de cálculo son solo informativas y no constituyen
-          asesoría financiera, legal o contable.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">7. Seguridad</h2>
-        <p class="mt-4 text-slate-500">
-          Aplicamos medidas razonables para proteger el sitio y prevenir accesos
-          no autorizados. Sin embargo, ningún sistema es completamente seguro y
-          no podemos garantizar seguridad total.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">8. Cambios en esta política</h2>
-        <p class="mt-4 text-slate-500">
-          Esta política puede actualizarse en cualquier momento. Los cambios se
-          publicarán en esta página con su fecha de actualización
-          correspondiente.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">9. Contacto</h2>
-        <p class="mt-4 text-slate-500">
-          Si tienes dudas sobre esta política, puedes contactarnos en:
-        </p>
-
-        <p class="mt-4 text-slate-500">
-          <span class="text-white font-semibold">Email:</span>
-          <a
-            href="mailto:contacto@letsgosimple.cl"
-            class="underline hover:opacity-80"
-          >
-            contacto@letsgosimple.cl
-          </a>
-        </p>
-      </div>
-    </section>
-
-    <footer class="mt-24 pt-10 border-t border-white/10 text-sm text-gray-500">
-      <a href="/" class="underline hover:opacity-80">← Volver al inicio</a>
-    </footer>
+    <!-- Back -->
+    <div class="mt-10">
+      <a
+        href="/"
+        class="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+        >← Volver al inicio</a
+      >
+    </div>
   </main>
 </BaseLayout>

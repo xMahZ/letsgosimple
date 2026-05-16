@@ -1,135 +1,111 @@
 ---
 import BaseLayout from "../layouts/baselayout.astro";
 
-const updatedAt = new Date().toLocaleDateString("es-CL", {
+const updated = new Date().toLocaleDateString("es-CL", {
   timeZone: "America/Santiago",
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
 });
+
+const items = [
+  {
+    n: "01",
+    title: "Solo referencial",
+    text: "Las herramientas y resultados de LetsGoSimple son informativos. No constituyen asesoría financiera, legal, tributaria, contable ni laboral. Para decisiones importantes, consulta a un profesional.",
+  },
+  {
+    n: "02",
+    title: "Los datos pueden variar",
+    text: "Valores como UF, USD o UTM provienen de fuentes públicas. Nos esforzamos por mantenerlos actualizados, pero no garantizamos exactitud absoluta ni disponibilidad en todo momento.",
+  },
+  {
+    n: "03",
+    title: "Úsalo bajo tu responsabilidad",
+    text: "LetsGoSimple no se hace responsable por pérdidas, errores o decisiones tomadas en base a la información del sitio. El uso es tuyo y la responsabilidad también.",
+  },
+  {
+    n: "04",
+    title: "Disponibilidad",
+    text: "El sitio puede tener interrupciones por mantenimiento o problemas técnicos. No garantizamos disponibilidad continua ni libre de errores.",
+  },
+  {
+    n: "05",
+    title: "Propiedad intelectual",
+    text: "El diseño, código y contenido original de LetsGoSimple están protegidos por derechos de autor. Puedes usarlo para fines personales, no para copiarlo o redistribuirlo comercialmente.",
+  },
+  {
+    n: "06",
+    title: "Enlaces externos",
+    text: "Si enlazamos a sitios externos, no controlamos su contenido ni sus políticas. Visítalos bajo tu criterio.",
+  },
+  {
+    n: "07",
+    title: "Jurisdicción",
+    text: "Este sitio opera desde Chile. Cualquier disputa se rige por la legislación chilena vigente.",
+  },
+  {
+    n: "08",
+    title: "Cambios",
+    text: "Podemos actualizar estos términos cuando sea necesario. La fecha arriba siempre reflejará la versión vigente. Seguir usando el sitio implica aceptarlos.",
+  },
+];
 ---
 
 <BaseLayout
-  title="Términos y Condiciones | LetsGoSimple"
+  title="Términos | LetsGoSimple"
   description="Términos y condiciones de uso de LetsGoSimple."
 >
-  <main class="max-w-4xl mx-auto px-6 py-16">
-    <section>
-      <h1 class="text-5xl font-bold tracking-tight">Términos y Condiciones</h1>
-
-      <p class="mt-6 text-slate-500 text-lg">
-        Al acceder y utilizar LetsGoSimple, aceptas estos términos y
-        condiciones. Si no estás de acuerdo con alguno de ellos, por favor no
-        utilices este sitio.
+  <main class="max-w-3xl mx-auto px-6 py-20">
+    <!-- Header -->
+    <div class="mb-14">
+      <p class="text-xs uppercase tracking-widest text-slate-500 mb-4">Legal</p>
+      <h1 class="text-4xl font-bold text-slate-50 tracking-tight">Términos</h1>
+      <p class="mt-3 text-slate-400">
+        Al usar el sitio, aceptas esto. Es corto, léelo.
       </p>
+      <p class="mt-2 text-xs text-slate-600">Actualizado: {updated}</p>
+    </div>
 
-      <p class="mt-4 text-sm text-gray-500">
-        Última actualización: {updatedAt}
+    <!-- Items -->
+    <div class="space-y-8">
+      {
+        items.map((item) => (
+          <div class="flex gap-6">
+            <span class="text-xs font-mono text-slate-700 pt-1 shrink-0 w-6">
+              {item.n}
+            </span>
+            <div class="border-t border-slate-800 pt-4 flex-1">
+              <h2 class="text-sm font-semibold text-slate-200 mb-2">
+                {item.title}
+              </h2>
+              <p class="text-sm text-slate-500 leading-relaxed">{item.text}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Contact -->
+    <div class="mt-16 border-t border-slate-800 pt-10">
+      <p class="text-sm text-slate-500">
+        ¿Dudas? Escríbenos a{" "}
+        <a
+          href="mailto:contacto@letsgosimple.app"
+          class="text-slate-300 hover:text-white underline underline-offset-4 transition-colors"
+        >
+          contacto@letsgosimple.app
+        </a>
       </p>
-    </section>
+    </div>
 
-    <section class="mt-16 space-y-10">
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">1. Uso del sitio</h2>
-        <p class="mt-4 text-slate-500">
-          LetsGoSimple ofrece herramientas y calculadoras de uso general. El
-          contenido del sitio es solo informativo y está diseñado para facilitar
-          cálculos rápidos y consultas referenciales.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">2. Sin asesoría profesional</h2>
-        <p class="mt-4 text-slate-500">
-          Las herramientas, datos y resultados entregados por LetsGoSimple no
-          constituyen asesoría financiera, contable, legal, tributaria ni
-          laboral. Para decisiones importantes, recomendamos consultar con un
-          profesional calificado.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">
-          3. Exactitud de la información
-        </h2>
-        <p class="mt-4 text-slate-500">
-          Nos esforzamos por mantener la información actualizada, pero no
-          garantizamos que los datos sean exactos, completos o estén disponibles
-          en todo momento. Algunos valores (UF, USD, UTM u otros) pueden
-          provenir de fuentes externas y podrían cambiar sin previo aviso.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">
-          4. Responsabilidad del usuario
-        </h2>
-        <p class="mt-4 text-slate-500">
-          El uso del sitio y de sus herramientas es responsabilidad exclusiva
-          del usuario. LetsGoSimple no se hace responsable por pérdidas, daños o
-          consecuencias derivadas del uso de la información entregada.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">
-          5. Disponibilidad del servicio
-        </h2>
-        <p class="mt-4 text-slate-500">
-          LetsGoSimple puede estar temporalmente fuera de servicio por
-          mantenimiento, actualizaciones o problemas técnicos. No garantizamos
-          disponibilidad continua ni libre de errores.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">6. Propiedad intelectual</h2>
-        <p class="mt-4 text-slate-500">
-          El diseño, código, textos y contenido original de LetsGoSimple están
-          protegidos por derechos de autor. No está permitido copiar, reproducir
-          o redistribuir el contenido sin autorización, salvo uso personal y no
-          comercial.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">7. Enlaces externos</h2>
-        <p class="mt-4 text-slate-500">
-          El sitio puede contener enlaces a páginas externas. LetsGoSimple no
-          controla dichos sitios y no se responsabiliza por su contenido,
-          funcionamiento o políticas de privacidad.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">8. Cambios en los términos</h2>
-        <p class="mt-4 text-slate-500">
-          LetsGoSimple puede modificar estos términos en cualquier momento. Los
-          cambios se publicarán en esta página y el uso continuo del sitio
-          implica la aceptación de dichos cambios.
-        </p>
-      </div>
-
-      <div>
-        <h2 class="text-2xl font-semibold mt-4">9. Contacto</h2>
-        <p class="mt-4 text-slate-500">
-          Si tienes dudas sobre estos términos, puedes contactarnos en:
-        </p>
-
-        <p class="mt-4 text-slate-500">
-          <span class="text-white font-semibold">Email:</span>
-          <a
-            href="mailto:contacto@letsgosimple.cl"
-            class="underline hover:opacity-80"
-          >
-            contacto@letsgosimple.cl
-          </a>
-        </p>
-      </div>
-    </section>
-
-    <footer class="mt-24 pt-10 border-t border-white/10 text-sm text-gray-500">
-      <a href="/" class="underline hover:opacity-80">← Volver al inicio</a>
-    </footer>
+    <!-- Back -->
+    <div class="mt-10">
+      <a
+        href="/"
+        class="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+        >← Volver al inicio</a
+      >
+    </div>
   </main>
 </BaseLayout>
