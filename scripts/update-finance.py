@@ -1,9 +1,9 @@
 import json
 import bcchapi
 from datetime import datetime, timedelta
-import pytz
 import os
 import sys
+from zoneinfo import ZoneInfo
 
 # ---------------------------
 # SERIES BCCH
@@ -18,7 +18,7 @@ pwd = os.getenv("BCCH_PASS")
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(BASE_DIR, "src", "data", "cl-finance.json")
 
-TZ = pytz.timezone("America/Santiago")
+TZ = ZoneInfo("America/Santiago")
 
 
 # ---------------------------
