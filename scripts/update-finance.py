@@ -129,34 +129,20 @@ def job_update_uf_utm():
     data    = load_json()
     history = data.get("rates_history", [])
 
-    # Determinar desde qué fecha pedir
-    if history:
-        last_date = max(r["date"] for r in history)
-        desde = (datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
-    else:
-        desde = "2026-01-01"
+    bcch  = bcchapi.Siete(usr=usr, pwd=pwd)
+    hasta = (now_chile() + timedelta(days=10)).strftime("%Y-%m-%d")
 
-    hasta = (now_chile() + timedelta(days=10)).strftime("%Y-%m-%d")  # UF publica días futuros
+    # Traer UTM desde 2025 completo (mensual, liviano)
+    df_utm = fetch_serie(bcch, UTM_SERIE, "2025-01-01", hasta)
 
-    if desde > hasta:
-        print("UF/UTM: histórico al día, nada que agregar.")
-        save_json(data)
-        return
-
-    print(f"Pidiendo UF desde {desde} hasta {hasta}")
-
-    bcch   = bcchapi.Siete(usr=usr, pwd=pwd)
-    df_uf  = fetch_serie(bcch, UF_SERIE,  desde, hasta)
-    df_utm = fetch_serie(bcch, UTM_SERIE, "2025-01-01", hasta)  # UTM mensual, traemos largo
-
-    # Indexar UTM por fecha para lookup fácil
+    # Indexar UTM por fecha
     utm_by_date = {}
     for idx, row in df_utm.iterrows():
         utm_by_date[idx.strftime("%Y-%m-%d")] = float(row["value"])
 
-    # Función para obtener UTM vigente en una fecha (último valor <= fecha)
+    # Función para obtener UTM vigente en una fecha (último valor publicado <= fecha)
     def get_utm_for_date(date_str):
-        target = datetime.strptime(date_str, "%Y-%m-%d")
+        target    = datetime.strptime(date_str, "%Y-%m-%d")
         best_date = None
         best_val  = 0
         for d_str, val in utm_by_date.items():
@@ -167,21 +153,49 @@ def job_update_uf_utm():
                     best_val  = val
         return best_val
 
+    # ---------------------------
+    # BACKFILL: rellenar utm=0 en histórico existente
+    # ---------------------------
+    backfilled = 0
+    for r in history:
+        if r.get("utm", 0) == 0:
+            utm_val = get_utm_for_date(r["date"])
+            if utm_val != 0:
+                r["utm"] = utm_val
+                backfilled += 1
+
+    if backfilled:
+        print(f"UTM backfill: {backfilled} dias rellenados en historico existente.")
+
+    # ---------------------------
+    # NUEVOS DÍAS: desde el último hasta hoy + 10
+    # ---------------------------
+    if history:
+        last_date = max(r["date"] for r in history)
+        desde     = (datetime.strptime(last_date, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+    else:
+        desde = "2026-01-01"
+
     nuevos = 0
-    for idx, row in df_uf.iterrows():
-        date_str = idx.strftime("%Y-%m-%d")
-        utm_val  = get_utm_for_date(date_str)
+    if desde <= hasta:
+        print(f"Pidiendo UF desde {desde} hasta {hasta}")
+        df_uf = fetch_serie(bcch, UF_SERIE, desde, hasta)
 
-        entry = {
-            "date": date_str,
-            "uf":   round(float(row["value"]), 2),
-            "usd":  0,
-            "utm":  utm_val
-        }
-        history = upsert(history, entry)
-        nuevos += 1
+        for idx, row in df_uf.iterrows():
+            date_str = idx.strftime("%Y-%m-%d")
+            entry    = {
+                "date": date_str,
+                "uf":   round(float(row["value"]), 2),
+                "usd":  0,
+                "utm":  get_utm_for_date(date_str)
+            }
+            history = upsert(history, entry)
+            nuevos += 1
 
-    print(f"UF/UTM: {nuevos} días procesados.")
+        print(f"UF: {nuevos} dias nuevos agregados.")
+    else:
+        print("UF: historico al dia, nada que agregar.")
+
     data["rates_history"] = history
     save_json(data)
     print("JOB 1 OK")
@@ -193,56 +207,83 @@ def job_update_uf_utm():
 # Si no hay publicación (finde/feriado), hereda el último valor conocido
 # ---------------------------
 def job_update_dolar():
-    print("=== JOB 2: Actualizar dólar observado ===")
+    print("=== JOB 2: Actualizar dolar observado ===")
 
-    now = now_chile()
-
-    # Guardar en el día siguiente (el dólar observado publicado hoy rige mañana)
-    tomorrow     = now + timedelta(days=1)
-    tomorrow_str = tomorrow.strftime("%Y-%m-%d")
+    now          = now_chile()
+    hoy_str      = now.strftime("%Y-%m-%d")
+    tomorrow_str = (now + timedelta(days=1)).strftime("%Y-%m-%d")
 
     data    = load_json()
     history = data.get("rates_history", [])
 
     bcch = bcchapi.Siete(usr=usr, pwd=pwd)
 
+    # ---------------------------
+    # BACKFILL: rellenar usd=0 en histórico existente (últimos 90 días)
+    # ---------------------------
+    dias_sin_usd = [r["date"] for r in history if r.get("usd", 0) == 0]
+
+    if dias_sin_usd:
+        fecha_min = min(dias_sin_usd)
+        print(f"USD backfill: pidiendo desde {fecha_min} hasta {hoy_str}")
+        try:
+            df_hist = fetch_serie(bcch, USD_SERIE, fecha_min, hoy_str)
+
+            # Construir mapa fecha -> valor
+            usd_hist = {}
+            for idx, row in df_hist.iterrows():
+                usd_hist[idx.strftime("%Y-%m-%d")] = round(float(row["value"]), 2)
+
+            # El dólar publicado en fecha X rige en fecha X+1
+            # Entonces para rellenar el histórico: history[date] = usd publicado en date-1
+            backfilled = 0
+            for r in history:
+                if r.get("usd", 0) == 0:
+                    # Buscar el valor publicado el día hábil anterior
+                    check_date = datetime.strptime(r["date"], "%Y-%m-%d") - timedelta(days=1)
+                    # Retroceder hasta encontrar un día hábil con dato
+                    for _ in range(5):
+                        check_str = check_date.strftime("%Y-%m-%d")
+                        if check_str in usd_hist:
+                            r["usd"] = usd_hist[check_str]
+                            backfilled += 1
+                            break
+                        check_date -= timedelta(days=1)
+
+            print(f"USD backfill: {backfilled} dias rellenados.")
+        except Exception as e:
+            print(f"USD backfill error: {e}")
+
+    # ---------------------------
+    # HOY: obtener valor publicado hoy (rige mañana)
+    # ---------------------------
     usd_value = None
-    usd_date  = None
 
     if is_business_day(now):
-        # Intentar traer el valor publicado hoy
-        hoy_str   = now.strftime("%Y-%m-%d")
         try:
             df = fetch_serie(bcch, USD_SERIE, hoy_str, hoy_str)
             if not df.empty:
                 usd_value = round(float(df["value"].iloc[-1]), 2)
-                usd_date  = hoy_str
-                print(f"Dólar obtenido: {usd_value} (publicado {usd_date})")
+                print(f"Dolar obtenido: {usd_value} (publicado {hoy_str}, rige {tomorrow_str})")
         except Exception as e:
-            print(f"No se pudo obtener dólar de hoy: {e}")
+            print(f"No se pudo obtener dolar de hoy: {e}")
 
-    # Si no hay valor (finde, feriado o falló la API), heredar el último conocido
+    # Si no hay valor nuevo, heredar el último conocido
     if usd_value is None:
         for r in history:
             if r.get("usd", 0) != 0:
                 usd_value = r["usd"]
-                usd_date  = r["date"]
-                print(f"Dólar heredado desde {usd_date}: {usd_value}")
+                print(f"Dolar heredado desde {r['date']}: {usd_value}")
                 break
 
     if usd_value is None:
-        print("No hay valor de dólar disponible, abortando JOB 2.")
+        print("No hay valor de dolar disponible, abortando JOB 2.")
         return
 
     # Escribir en el día siguiente
-    entry = {
-        "date": tomorrow_str,
-        "uf":   0,
-        "usd":  usd_value,
-        "utm":  0
-    }
+    entry = {"date": tomorrow_str, "uf": 0, "usd": usd_value, "utm": 0}
     history = upsert(history, entry)
-    print(f"Dólar {usd_value} escrito en {tomorrow_str}")
+    print(f"Dolar {usd_value} escrito en {tomorrow_str}")
 
     data["rates_history"] = history
     save_json(data)
