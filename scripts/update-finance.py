@@ -166,8 +166,7 @@ def job_update_uf_utm():
                 r["utm"] = utm_val
                 backfilled += 1
 
-    if backfilled:
-        print(f"UTM backfill: {backfilled} dias rellenados en historico existente.")
+    print(f"UTM backfill: {backfilled} dias rellenados (de {len([r for r in history if r.get('utm',0)==0 or r.get('utm') is None])} con utm=0 antes del backfill).")
 
     # ---------------------------
     # NUEVOS DÍAS: desde el último hasta hoy + 10
@@ -239,20 +238,26 @@ def job_update_dolar():
 
             print(f"DEBUG USD fechas disponibles: {sorted(usd_hist.keys())[:10]}... total={len(usd_hist)}")
 
-            # El BCCH devuelve el dólar con la fecha en que rige (no en que se publica)
-            # Entonces history[date].usd = usd_hist[date] directamente
-            # Si no hay dato exacto (finde/feriado), buscamos el día hábil anterior
+            # Construir lista ordenada de fechas disponibles para búsqueda eficiente
+            usd_dates_sorted = sorted(usd_hist.keys())
+
+            def get_usd_for_date(date_str):
+                """Retorna el valor USD más cercano (anterior o igual) a date_str."""
+                best = None
+                target = date_str
+                for d in reversed(usd_dates_sorted):
+                    if d <= target:
+                        best = d
+                        break
+                return usd_hist[best] if best else None
+
             backfilled = 0
             for r in history:
                 if r.get("usd", 0) == 0:
-                    check_date = datetime.strptime(r["date"], "%Y-%m-%d")
-                    for _ in range(5):
-                        check_str = check_date.strftime("%Y-%m-%d")
-                        if check_str in usd_hist:
-                            r["usd"] = usd_hist[check_str]
-                            backfilled += 1
-                            break
-                        check_date -= timedelta(days=1)
+                    val = get_usd_for_date(r["date"])
+                    if val is not None:
+                        r["usd"] = val
+                        backfilled += 1
 
             print(f"USD backfill: {backfilled} dias rellenados.")
         except Exception as e:
