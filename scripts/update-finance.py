@@ -195,6 +195,7 @@ def job_update_uf_utm():
         print(f"UF: {nuevos} dias nuevos agregados.")
     else:
         print("UF: historico al dia, nada que agregar.")
+        # Aunque no haya días nuevos, igual guardamos el backfill de UTM
 
     data["rates_history"] = history
     save_json(data)
@@ -234,14 +235,13 @@ def job_update_dolar():
             for idx, row in df_hist.iterrows():
                 usd_hist[idx.strftime("%Y-%m-%d")] = round(float(row["value"]), 2)
 
-            # El dólar publicado en fecha X rige en fecha X+1
-            # Entonces para rellenar el histórico: history[date] = usd publicado en date-1
+            # El BCCH devuelve el dólar con la fecha en que rige (no en que se publica)
+            # Entonces history[date].usd = usd_hist[date] directamente
+            # Si no hay dato exacto (finde/feriado), buscamos el día hábil anterior
             backfilled = 0
             for r in history:
                 if r.get("usd", 0) == 0:
-                    # Buscar el valor publicado el día hábil anterior
-                    check_date = datetime.strptime(r["date"], "%Y-%m-%d") - timedelta(days=1)
-                    # Retroceder hasta encontrar un día hábil con dato
+                    check_date = datetime.strptime(r["date"], "%Y-%m-%d")
                     for _ in range(5):
                         check_str = check_date.strftime("%Y-%m-%d")
                         if check_str in usd_hist:
