@@ -140,6 +140,8 @@ def job_update_uf_utm():
     for idx, row in df_utm.iterrows():
         utm_by_date[idx.strftime("%Y-%m-%d")] = float(row["value"])
 
+    print(f"DEBUG UTM fechas disponibles: {sorted(utm_by_date.keys())}")
+
     # Función para obtener UTM vigente en una fecha (último valor publicado <= fecha)
     def get_utm_for_date(date_str):
         target    = datetime.strptime(date_str, "%Y-%m-%d")
@@ -234,6 +236,8 @@ def job_update_dolar():
             usd_hist = {}
             for idx, row in df_hist.iterrows():
                 usd_hist[idx.strftime("%Y-%m-%d")] = round(float(row["value"]), 2)
+
+            print(f"DEBUG USD fechas disponibles: {sorted(usd_hist.keys())[:10]}... total={len(usd_hist)}")
 
             # El BCCH devuelve el dólar con la fecha en que rige (no en que se publica)
             # Entonces history[date].usd = usd_hist[date] directamente
