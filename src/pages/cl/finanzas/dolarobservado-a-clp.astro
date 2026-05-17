@@ -1,0 +1,498 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+import data from "@/data/cl-finance.json";
+// valor UF real (número)
+const ufValue = data.latest?.uf;
+
+// variaciones UF (objeto con 7d/30d/60d)
+const ufVar = data.latest?.variations?.uf;
+
+const updatedAtraw = data.latest?.date;
+
+// Fecha formateada
+const [year, month, day] = updatedAtraw.split("-");
+const updatedAt = `${day}-${month}-${year}`;
+
+// helper seguro
+const getPct = (obj) => (obj && typeof obj.pct === "number" ? obj.pct : null);
+
+// variaciones
+const var7 = ufVar?.["7d"];
+const var30 = ufVar?.["30d"];
+const var60 = ufVar?.["60d"];
+
+// textos UI
+const var7Text = (() => {
+  const v = getPct(var7);
+  return v !== null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "N/A";
+})();
+
+const var30Text = (() => {
+  const v = getPct(var30);
+  return v !== null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "N/A";
+})();
+
+const var60Text = (() => {
+  const v = getPct(var60);
+  return v !== null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "N/A";
+})();
+
+// clases UI
+const getClass = (obj) => {
+  const v = getPct(obj);
+  if (v === null) return "text-slate-500";
+  return v >= 0 ? "text-green-400" : "text-red-400";
+};
+
+const var7Class = getClass(var7);
+const var30Class = getClass(var30);
+const var60Class = getClass(var60);
+---
+
+<BaseLayout title="UF a CLP | Conversor UF a Peso Chileno">
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Cómo convertir UF a pesos chilenos?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Para convertir UF a pesos chilenos se multiplica el monto en UF por el valor actual de la UF publicado por el Banco Central de Chile."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Qué es la UF en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La UF (Unidad de Fomento) es una unidad de cuenta reajustable según la inflación en Chile, usada en créditos, arriendos y contratos."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿El conversor UF a CLP es exacto?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "El conversor es aproximado y se basa en el valor diario de la UF publicado oficialmente por el Banco Central de Chile."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 id="pageTitle" class="text-3xl font-semibold tracking-tight text-white">
+      UF a CLP
+    </h1>
+
+    <p id="pageDesc" class="mt-2 text-slate-400">
+      Conversor rápido de Unidad de Fomento a Peso Chileno.
+    </p>
+
+    <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
+      <!-- 🔹 UF actual (solo contexto) -->
+      <div class="text-sm text-slate-400 mb-4">
+        Valor UF actual:
+        <span class="text-blue-400 font-medium">
+          $ {ufValue.toLocaleString("es-CL")}
+        </span>
+
+        <span class="text-slate-500">
+          - Actualizado al {updatedAt}
+        </span>
+
+        <span class="text-slate-600">
+          · Datos Banco Central de Chile (BCCh)
+        </span>
+      </div>
+
+      <!-- 🔹 INPUT HEADER -->
+      <div class="flex items-center justify-between mb-2">
+        <label id="inputLabel" class="block text-sm text-slate-300">
+          Ingresa UF
+        </label>
+
+        <button
+          id="swapBtn"
+          type="button"
+          class="w-20 h-10 flex items-center justify-center rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition text-sm"
+          title="Invertir conversión"
+        >
+          <span
+            id="swapIcon"
+            class="inline-block transition-transform duration-300"
+          >
+            ⇄
+          </span>
+        </button>
+      </div>
+
+      <!-- 🔹 INPUT -->
+      <input
+        id="ufInput"
+        type="number"
+        step="0.01"
+        placeholder="Ej: 2.5 UF"
+        class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500"
+      />
+
+      <!-- 🔹 RESULTADO -->
+      <div
+        class="mt-6 p-4 rounded-lg border border-white/10 bg-[#070b16] flex items-center justify-between gap-4"
+      >
+        <div>
+          <div class="text-sm text-slate-400">Resultado</div>
+          <div id="result" class="text-2xl text-white mt-1">—</div>
+        </div>
+
+        <button
+          id="copyBtn"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition text-sm"
+        >
+          Copiar
+        </button>
+      </div>
+
+      <!-- 🔹 VARIACIONES (micro info) -->
+      <div class="mt-4 flex items-center gap-3 text-xs text-slate-400">
+        <span>Variaciones UF:</span>
+
+        <span class={var7Class}>
+          7 días {var7Text}
+        </span>
+
+        <span class="text-slate-600">•</span>
+
+        <span class={var30Class}>
+          30 días {var30Text}
+        </span>
+
+        <span class="text-slate-600">•</span>
+
+        <span class={var60Class}>
+          60 días {var60Text}
+        </span>
+      </div>
+    </div>
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">
+        Conversiones comunes de UF a CLP
+      </h2>
+
+      <p class="text-slate-500 text-xs mb-4">
+        Valores aproximados según la UF de hoy. Haz clic para usar el monto.
+      </p>
+
+      <!-- 🔵 UX: botones limpios -->
+      <div class="space-y-1">
+        {
+          [5, 20, 40, 80, 2200, 2400].map((value) => (
+            <button
+              class="quick-row w-full flex items-center justify-between px-10 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm"
+              data-value={value}
+              type="button"
+            >
+              <span class="text-slate-200">
+                {value.toLocaleString("es-CL")} UF
+              </span>
+
+              <span class="text-slate-400">
+                ${" "}
+                {(value * ufValue).toLocaleString("es-CL", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}
+              </span>
+            </button>
+          ))
+        }
+      </div>
+
+      <!-- 🟢 SEO: contenido invisible visualmente pero indexable -->
+      <div class="sr-only">
+        <p>
+          5 UF a pesos chilenos equivalen aproximadamente a ${
+            (5 * ufValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          20 UF a pesos chilenos equivalen aproximadamente a ${
+            (20 * ufValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          40 UF a pesos chilenos equivalen aproximadamente a ${
+            (40 * ufValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          80 UF a pesos chilenos equivalen aproximadamente a ${
+            (80 * ufValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          2200 UF a pesos chilenos equivalen aproximadamente a ${
+            (2200 * ufValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          2400 UF a pesos chilenos equivalen aproximadamente a ${
+            (2400 * ufValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+      </div>
+    </section>
+    <section class="mt-6 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">¿Qué es la UF?</h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <!-- Corto -->
+      <div id="contentShort">
+        <p>
+          La UF (Unidad de Fomento) es un valor que cambia todos los días en
+          Chile según la inflación. Se usa para que créditos hipotecarios,
+          arriendos y contratos mantengan su valor con el tiempo. Por eso,
+          cuando sube el costo de vida, también sube la UF.
+        </p>
+      </div>
+
+      <!-- Completo -->
+      <div id="contentFull" class="hidden">
+        <p>
+          La UF (Unidad de Fomento) es una unidad de cuenta reajustable
+          utilizada en Chile para reflejar la variación del IPC (Índice de
+          Precios al Consumidor). Su valor se publica diariamente y es calculado
+          en base a la inflación, permitiendo expresar montos en una unidad que
+          mantiene su poder adquisitivo en el tiempo.
+        </p>
+
+        <p class="mt-3">
+          Se utiliza principalmente en créditos hipotecarios, contratos de
+          arriendo, seguros, instrumentos financieros y otros acuerdos donde es
+          importante que el monto no pierda valor con el paso del tiempo. Por
+          ejemplo, un dividendo hipotecario expresado en UF puede mantenerse
+          constante en UF, pero variar en pesos chilenos (CLP) según el valor
+          diario de la UF.
+        </p>
+
+        <p class="mt-3">
+          Para convertir UF a CLP, basta multiplicar el monto en UF por el valor
+          vigente de la UF en pesos chilenos. Por esta razón, el mismo monto en
+          UF puede equivaler a diferentes valores en CLP dependiendo de la
+          fecha.
+        </p>
+      </div>
+
+      <h2 class="text-white font-semibold text-lg mt-8 mb-2">
+        ¿Cómo convertir UF a CLP?
+      </h2>
+      <p>
+        Para convertir UF a pesos chilenos, se multiplica el monto ingresado por
+        el valor UF actual publicado por el Banco Central de Chile. Este
+        conversor lo hace automáticamente.
+      </p>
+      <div class="sr-only">
+        <p>
+          Conversor de UF a CLP que permite calcular cualquier monto de Unidad
+          de Fomento a pesos chilenos en tiempo real.
+        </p>
+        <p>
+          Incluye conversiones rápidas de valores comunes como 5 UF, 20 UF, 40
+          UF, 80 UF y valores altos como 2200 UF.
+        </p>
+        <p>
+          El cálculo se actualiza automáticamente según el valor diario de la
+          UF.
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+<script is:inline define:vars={{ ufValue }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    // -----------------------------
+    // ELEMENTOS
+    // -----------------------------
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
+    const input = document.getElementById("ufInput");
+    const result = document.getElementById("result");
+    const copyBtn = document.getElementById("copyBtn");
+    const swapBtn = document.getElementById("swapBtn");
+    const swapIcon = document.getElementById("swapIcon");
+    const inputLabel = document.getElementById("inputLabel");
+
+    // Tabs UF explicación
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    // -----------------------------
+    // ESTADO
+    // -----------------------------
+    let mode = "UF_TO_CLP"; // UF_TO_CLP | CLP_TO_UF
+
+    // -----------------------------
+    // HELPERS
+    // -----------------------------
+    function formatCLP(value) {
+      return (
+        "$" +
+        value.toLocaleString("es-CL", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        })
+      );
+    }
+
+    function formatUF(value) {
+      return (
+        value.toLocaleString("es-CL", {
+          minimumFractionDigits: 4,
+          maximumFractionDigits: 4,
+        }) + " UF"
+      );
+    }
+
+    function updateUI() {
+      if (mode === "UF_TO_CLP") {
+        inputLabel.innerText = "Ingresa UF";
+        input.placeholder = "Ej: 2.5 UF";
+
+        pageTitle.innerText = "UF a CLP";
+        pageDesc.innerText =
+          "Conversor rápido de Unidad de Fomento a Peso Chileno.";
+      } else {
+        inputLabel.innerText = "Ingresa CLP";
+        input.placeholder = "Ej: 500000";
+
+        pageTitle.innerText = "CLP a UF";
+        pageDesc.innerText =
+          "Conversor rápido de Peso Chileno a Unidad de Fomento.";
+      }
+    }
+
+    function calc() {
+      const raw = input.value.replace(",", ".");
+      const amount = Number(raw);
+
+      if (isNaN(amount) || amount <= 0) {
+        result.innerText = "—";
+        return;
+      }
+
+      if (mode === "UF_TO_CLP") {
+        result.innerText = formatCLP(amount * ufValue);
+      } else {
+        result.innerText = formatUF(amount / ufValue);
+      }
+    }
+
+    // -----------------------------
+    // TABS (explicación UF)
+    // -----------------------------
+    function activateTab(tab) {
+      const isShort = tab === "short";
+
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+    tabFull?.addEventListener("click", () => activateTab("full"));
+
+    // -----------------------------
+    // SWAP
+    // -----------------------------
+    swapBtn?.addEventListener("click", () => {
+      // animación giro
+      swapIcon.style.transform = "rotate(180deg)";
+      setTimeout(() => {
+        swapIcon.style.transform = "rotate(0deg)";
+      }, 300);
+
+      mode = mode === "UF_TO_CLP" ? "CLP_TO_UF" : "UF_TO_CLP";
+      updateUI();
+      calc();
+    });
+
+    // -----------------------------
+    // INPUT LIVE
+    // -----------------------------
+    input?.addEventListener("input", calc);
+
+    // -----------------------------
+    // COPY
+    // -----------------------------
+    copyBtn?.addEventListener("click", async () => {
+      const text = result.innerText;
+      if (!text || text === "—") return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.innerText = "Copiado ✓";
+
+        setTimeout(() => {
+          copyBtn.innerText = "Copiar";
+        }, 1200);
+      } catch (err) {
+        console.error("No se pudo copiar:", err);
+      }
+    });
+
+    // -----------------------------
+    // TABLA CONVERSIONES RAPIDAS (delegación)
+    // -----------------------------
+    document.addEventListener("click", (e) => {
+      const row = e.target.closest(".quick-row");
+      if (!row) return;
+
+      const val = row.getAttribute("data-value");
+      if (!val) return;
+
+      // siempre forzar UF -> CLP
+      mode = "UF_TO_CLP";
+      updateUI();
+
+      input.value = val;
+      calc();
+    });
+
+    // -----------------------------
+    // INIT
+    // -----------------------------
+    updateUI();
+    activateTab("short");
+  });
+</script>
