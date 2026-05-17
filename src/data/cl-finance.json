@@ -137,8 +137,8 @@
     {
       "date": "2026-05-18",
       "uf": 40391.32,
-      "utm": 0,
-      "usd": 0
+      "usd": 891.0,
+      "utm": 0
     },
     {
       "date": "2026-05-17",
@@ -616,59 +616,59 @@
     "utm": 70588.0,
     "dates": {
       "uf": "2026-05-17",
-      "usd": "2026-05-15",
-      "utm": "2026-05-01"
+      "usd": "2026-05-17",
+      "utm": "2026-05-17"
     },
     "variations": {
       "uf": {
         "7d": {
           "value": 40256.91,
-          "pct": 0.292074081194991,
+          "pct": 0.292074,
           "date": "2026-05-10"
         },
         "30d": {
           "value": 39947.58,
-          "pct": 1.0686754992417467,
+          "pct": 1.068675,
           "date": "2026-04-17"
         },
         "60d": {
           "value": 39841.72,
-          "pct": 1.3372163651569178,
+          "pct": 1.337216,
           "date": "2026-03-18"
         }
       },
       "usd": {
         "7d": {
-          "value": 0,
+          "value": null,
           "pct": null,
-          "date": "2026-05-08"
+          "date": null
         },
         "30d": {
-          "value": 0,
+          "value": null,
           "pct": null,
-          "date": "2026-04-15"
+          "date": null
         },
         "60d": {
-          "value": 0,
+          "value": null,
           "pct": null,
-          "date": "2026-03-16"
+          "date": null
         }
       },
       "utm": {
         "7d": {
-          "value": 0,
+          "value": null,
           "pct": null,
-          "date": "2026-04-24"
+          "date": null
         },
         "30d": {
-          "value": 0,
+          "value": null,
           "pct": null,
-          "date": "2026-04-01"
+          "date": null
         },
         "60d": {
-          "value": 0,
+          "value": null,
           "pct": null,
-          "date": "2026-03-02"
+          "date": null
         }
       }
     }
