@@ -1,0 +1,461 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+import data from "@/data/cl-finance.json";
+
+// UTM base
+const utmValue = data.latest?.utm;
+
+// UTA calculada
+const utaValue = utmValue * 12;
+
+// variaciones (usamos las de UTM porque UTA es derivada)
+const utaVar = data.latest?.variations?.utm;
+
+const updatedAtraw = data.latest?.date;
+
+// Fecha formateada
+const [year, month, day] = updatedAtraw.split("-");
+const updatedAt = `${day}-${month}-${year}`;
+
+// helper seguro
+const getPct = (obj) => (obj && typeof obj.pct === "number" ? obj.pct : null);
+
+// variaciones
+const var7 = utaVar?.["7d"];
+const var30 = utaVar?.["30d"];
+const var60 = utaVar?.["60d"];
+
+// textos UI
+const var7Text = (() => {
+  const v = getPct(var7);
+  return v !== null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "N/A";
+})();
+
+const var30Text = (() => {
+  const v = getPct(var30);
+  return v !== null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "N/A";
+})();
+
+const var60Text = (() => {
+  const v = getPct(var60);
+  return v !== null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "N/A";
+})();
+
+// clases UI
+const getClass = (obj) => {
+  const v = getPct(obj);
+  if (v === null) return "text-slate-500";
+  return v >= 0 ? "text-green-400" : "text-red-400";
+};
+
+const var7Class = getClass(var7);
+const var30Class = getClass(var30);
+const var60Class = getClass(var60);
+---
+
+<BaseLayout title="UTA a CLP | Conversor UTA a Peso Chileno">
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Cómo convertir UTA a pesos chilenos?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Para convertir UTA a pesos chilenos se multiplica el monto en UTA por el valor actual de la UTA. La UTA equivale a 12 veces la UTM."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Qué es la UTA en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La UTA (Unidad Tributaria Anual) es una unidad de cuenta usada en Chile en temas tributarios. Su valor corresponde a 12 UTM."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cuál es la relación entre UTA y UTM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "1 UTA equivale a 12 UTM. Por lo tanto, su valor en pesos se calcula multiplicando la UTM vigente por 12."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 id="pageTitle" class="text-3xl font-semibold tracking-tight text-white">
+      UTA a CLP
+    </h1>
+
+    <p id="pageDesc" class="mt-2 text-slate-400">
+      Conversor rápido de Unidad Tributaria Anual a Peso Chileno.
+    </p>
+
+    <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
+      <!-- 🔹 UTA actual -->
+      <div class="text-sm text-slate-400 mb-4">
+        Valor UTA actual:
+        <span class="text-blue-400 font-medium">
+          $ {utaValue.toLocaleString("es-CL")}
+        </span>
+
+        <span class="text-slate-500">
+          - Actualizado al {updatedAt}
+        </span>
+
+        <span class="text-slate-600"> · UTA calculada como 12 × UTM </span>
+      </div>
+
+      <!-- 🔹 INPUT HEADER -->
+      <div class="flex items-center justify-between mb-2">
+        <label id="inputLabel" class="block text-sm text-slate-300">
+          Ingresa UTA
+        </label>
+
+        <button
+          id="swapBtn"
+          type="button"
+          class="w-20 h-10 flex items-center justify-center rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition text-sm"
+          title="Invertir conversión"
+        >
+          <span
+            id="swapIcon"
+            class="inline-block transition-transform duration-300"
+          >
+            ⇄
+          </span>
+        </button>
+      </div>
+
+      <!-- 🔹 INPUT -->
+      <input
+        id="utaInput"
+        type="number"
+        step="0.01"
+        placeholder="Ej: 2.5 UTA"
+        class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500"
+      />
+
+      <!-- 🔹 RESULTADO -->
+      <div
+        class="mt-6 p-4 rounded-lg border border-white/10 bg-[#070b16] flex items-center justify-between gap-4"
+      >
+        <div>
+          <div class="text-sm text-slate-400">Resultado</div>
+          <div id="result" class="text-2xl text-white mt-1">—</div>
+        </div>
+
+        <button
+          id="copyBtn"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition text-sm"
+        >
+          Copiar
+        </button>
+      </div>
+
+      <!-- 🔹 VARIACIONES -->
+      <div class="mt-4 flex items-center gap-3 text-xs text-slate-400">
+        <span>Variaciones (UTM):</span>
+
+        <span class={var7Class}>
+          7 días {var7Text}
+        </span>
+
+        <span class="text-slate-600">•</span>
+
+        <span class={var30Class}>
+          30 días {var30Text}
+        </span>
+
+        <span class="text-slate-600">•</span>
+
+        <span class={var60Class}>
+          60 días {var60Text}
+        </span>
+      </div>
+    </div>
+
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">
+        Conversiones comunes de UTA a CLP
+      </h2>
+
+      <p class="text-slate-500 text-xs mb-4">
+        Valores aproximados según la UTM vigente. Haz clic para usar el monto.
+      </p>
+
+      <div class="space-y-1">
+        {
+          [1, 2, 5, 10, 20, 50].map((value) => (
+            <button
+              class="quick-row w-full flex items-center justify-between px-10 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm"
+              data-value={value}
+              type="button"
+            >
+              <span class="text-slate-200">
+                {value.toLocaleString("es-CL")} UTA
+              </span>
+
+              <span class="text-slate-400">
+                ${" "}
+                {(value * utaValue).toLocaleString("es-CL", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}
+              </span>
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="sr-only">
+        <p>
+          1 UTA a pesos chilenos equivalen aproximadamente a ${
+            (1 * utaValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          2 UTA a pesos chilenos equivalen aproximadamente a ${
+            (2 * utaValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          5 UTA a pesos chilenos equivalen aproximadamente a ${
+            (5 * utaValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          10 UTA a pesos chilenos equivalen aproximadamente a ${
+            (10 * utaValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          20 UTA a pesos chilenos equivalen aproximadamente a ${
+            (20 * utaValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+        <p>
+          50 UTA a pesos chilenos equivalen aproximadamente a ${
+            (50 * utaValue).toLocaleString("es-CL")
+          } pesos.
+        </p>
+      </div>
+    </section>
+
+    <section class="mt-6 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">¿Qué es la UTA?</h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <!-- Corto -->
+      <div id="contentShort">
+        <p>
+          La UTA (Unidad Tributaria Anual) es un valor de referencia usado en
+          Chile para definir límites, multas y montos tributarios en leyes y
+          normas del SII. Se usa cuando se necesita expresar cifras grandes de
+          forma estandarizada, sin depender directamente del peso chileno.
+        </p>
+      </div>
+
+      <!-- Completo -->
+      <div id="contentFull" class="hidden">
+        <p>
+          La UTA (Unidad Tributaria Anual) es una unidad de cuenta utilizada en
+          Chile en normativas tributarias y legales, especialmente para expresar
+          montos relevantes como topes, sanciones, multas y umbrales
+          relacionados con impuestos.
+        </p>
+
+        <p class="mt-3">
+          A diferencia de valores como la UF (que se usa en créditos y contratos
+          financieros), la UTA aparece con mayor frecuencia en reglamentos del
+          Servicio de Impuestos Internos (SII) y en leyes que definen montos
+          anuales.
+        </p>
+
+        <p class="mt-3">
+          Su principal ventaja es que permite mantener montos comparables a lo
+          largo del tiempo, evitando que las leyes queden desactualizadas por la
+          inflación. Por eso muchas obligaciones tributarias o sanciones se
+          expresan en UTA y no directamente en pesos chilenos.
+        </p>
+
+        <p class="mt-3">
+          En la práctica, si necesitas pagar una multa o calcular un límite
+          legal en UTA, debes convertirla a pesos chilenos usando el valor
+          vigente. Este conversor lo calcula automáticamente.
+        </p>
+      </div>
+
+      <h2 class="text-white font-semibold text-lg mt-8 mb-2">
+        ¿Cómo convertir UTA a CLP?
+      </h2>
+
+      <p>
+        Para convertir UTA a pesos chilenos, se multiplica el monto ingresado
+        por el valor vigente de la UTA (12 × UTM). Este conversor lo realiza
+        automáticamente.
+      </p>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ utaValue }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
+    const input = document.getElementById("utaInput");
+    const result = document.getElementById("result");
+    const copyBtn = document.getElementById("copyBtn");
+    const swapBtn = document.getElementById("swapBtn");
+    const swapIcon = document.getElementById("swapIcon");
+    const inputLabel = document.getElementById("inputLabel");
+
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    let mode = "UTA_TO_CLP"; // UTA_TO_CLP | CLP_TO_UTA
+
+    function formatCLP(value) {
+      return (
+        "$" +
+        value.toLocaleString("es-CL", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        })
+      );
+    }
+
+    function formatUTA(value) {
+      return (
+        value.toLocaleString("es-CL", {
+          minimumFractionDigits: 4,
+          maximumFractionDigits: 4,
+        }) + " UTA"
+      );
+    }
+
+    function updateUI() {
+      if (mode === "UTA_TO_CLP") {
+        inputLabel.innerText = "Ingresa UTA";
+        input.placeholder = "Ej: 2.5 UTA";
+
+        pageTitle.innerText = "UTA a CLP";
+        pageDesc.innerText =
+          "Conversor rápido de Unidad Tributaria Anual a Peso Chileno.";
+      } else {
+        inputLabel.innerText = "Ingresa CLP";
+        input.placeholder = "Ej: 500000";
+
+        pageTitle.innerText = "CLP a UTA";
+        pageDesc.innerText =
+          "Conversor rápido de Peso Chileno a Unidad Tributaria Anual.";
+      }
+    }
+
+    function calc() {
+      const raw = input.value.replace(",", ".");
+      const amount = Number(raw);
+
+      if (isNaN(amount) || amount <= 0) {
+        result.innerText = "—";
+        return;
+      }
+
+      if (mode === "UTA_TO_CLP") {
+        result.innerText = formatCLP(amount * utaValue);
+      } else {
+        result.innerText = formatUTA(amount / utaValue);
+      }
+    }
+
+    function activateTab(tab) {
+      const isShort = tab === "short";
+
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+    tabFull?.addEventListener("click", () => activateTab("full"));
+
+    swapBtn?.addEventListener("click", () => {
+      swapIcon.style.transform = "rotate(180deg)";
+      setTimeout(() => {
+        swapIcon.style.transform = "rotate(0deg)";
+      }, 300);
+
+      mode = mode === "UTA_TO_CLP" ? "CLP_TO_UTA" : "UTA_TO_CLP";
+      updateUI();
+      calc();
+    });
+
+    input?.addEventListener("input", calc);
+
+    copyBtn?.addEventListener("click", async () => {
+      const text = result.innerText;
+      if (!text || text === "—") return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.innerText = "Copiado ✓";
+
+        setTimeout(() => {
+          copyBtn.innerText = "Copiar";
+        }, 1200);
+      } catch (err) {
+        console.error("No se pudo copiar:", err);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      const row = e.target.closest(".quick-row");
+      if (!row) return;
+
+      const val = row.getAttribute("data-value");
+      if (!val) return;
+
+      mode = "UTA_TO_CLP";
+      updateUI();
+
+      input.value = val;
+      calc();
+    });
+
+    updateUI();
+    activateTab("short");
+  });
+</script>
