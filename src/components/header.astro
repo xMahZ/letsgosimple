@@ -1,46 +1,73 @@
-<header class="w-full sticky top-0 z-50 border-b border-white/10 bg-[#070b16]">
+---
+const nav = [
+  {
+    category: "Finanzas (también a los inversos)",
+    items: [
+      { label: "UF a CLP",      href: "/cl/finanzas/uf-a-clp" },
+      { label: "Dólar a CLP",   href: "/cl/finanzas/dolar-a-clp" },
+      { label: "UTM a CLP",     href: "/cl/finanzas/utm-a-clp" },
+      { label: "UTA a CLP",    href: "/cl/finanzas/uta-a-clp" },
+    ],
+  },
+  // Para agregar categorías nuevas, copia el bloque de arriba:
+  // {
+  //   category: "Laboral",
+  //   items: [
+  //     { label: "Calculadora finiquito", href: "/cl/laboral/finiquito" },
+  //     { label: "Carta de renuncia",     href: "/cl/laboral/carta-renuncia" },
+  //   ],
+  // },
+];
+---
+
+<header class="w-full sticky top-0 z-50 border-b border-white/10 bg-[#070b16]/95 backdrop-blur-sm">
   <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+
     <!-- Brand -->
-    <a href="/" class="text-slate-100 font-semibold text-lg"> LetsGoSimple </a>
+    <a href="/" class="font-semibold text-lg tracking-tight">
+      <span class="text-slate-100">LetsGo</span><span class="text-orange-400">Simple</span>
+    </a>
 
     <!-- Dropdown -->
     <div class="relative">
-      <!-- Button -->
       <button
         id="menuBtn"
-        class="text-slate-300 hover:text-white text-sm flex items-center gap-1"
+        class="text-slate-300 hover:text-white text-sm flex items-center gap-1.5 transition-colors"
       >
-        Secciones <span class="text-xs">▾</span>
+        Herramientas
+        <svg id="menuChevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+        </svg>
       </button>
 
       <!-- Menu -->
       <div
         id="menu"
-        class="absolute right-0 mt-2 w-44 bg-[#0f172a] border border-white/10 rounded-md shadow-lg
+        class="absolute right-0 mt-2 w-52 bg-[#0b1120] border border-white/10 rounded-xl shadow-xl
                opacity-0 scale-95 pointer-events-none
-               transition-all duration-150 origin-top-right"
+               transition-all duration-150 origin-top-right overflow-hidden"
       >
-        <a
-          href="/finanzas"
-          class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5"
-        >
-          Finanzas
-        </a>
-
-        <a
-          href="/matematica"
-          class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5"
-        >
-          Matemática
-        </a>
-
-        <a
-          href="/conversores"
-          class="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5"
-        >
-          Conversores
-        </a>
+        {nav.map((group, gi) => (
+          <div class={gi > 0 ? "border-t border-white/10" : ""}>
+            <!-- Categoría -->
+            <p class="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+              {group.category}
+            </p>
+            <!-- Items -->
+            {group.items.map(item => (
+              <a
+                href={item.href}
+                class="flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <span class="w-1 h-1 rounded-full bg-slate-700 shrink-0"></span>
+                {item.label}
+              </a>
+            ))}
+            <div class="h-2"></div>
+          </div>
+        ))}
       </div>
     </div>
+
   </div>
 </header>
