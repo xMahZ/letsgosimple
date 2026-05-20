@@ -37,6 +37,75 @@ const getClass = (obj) => {
 const var7Class = getClass(var7);
 const var30Class = getClass(var30);
 const var60Class = getClass(var60);
+
+// Últimos 7 días USD (excluyendo hoy y días futuros, parte desde ayer)
+const todayDate = new Date(
+  new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" }),
+);
+todayDate.setDate(todayDate.getDate() - 1);
+const today = todayDate.toISOString().split("T")[0];
+
+const last7raw = data.rates_history
+  .filter((r) => r.usd > 0 && r.date <= today)
+  .slice(0, 8); // traemos 8 para calcular variación del 7mo
+
+const last7 = last7raw.slice(0, 7).map((r, i) => {
+  const prev = last7raw[i + 1];
+  const [y, m, d] = r.date.split("-");
+  let varText = "—";
+  let varClass = "text-slate-500";
+
+  if (prev && prev.usd > 0) {
+    const varPct = ((r.usd - prev.usd) / prev.usd) * 100;
+    varText = `${varPct >= 0 ? "+" : ""}${varPct.toFixed(2)}%`;
+    varClass =
+      varPct > 0
+        ? "text-green-400"
+        : varPct < 0
+          ? "text-red-400"
+          : "text-slate-500";
+  }
+
+  return { date: `${d}-${m}-${y}`, raw: r.date, usd: r.usd, varText, varClass };
+});
+
+const dayLabels = [
+  "ayer",
+  "hace 2 días",
+  "hace 3 días",
+  "hace 4 días",
+  "hace 5 días",
+  "hace 6 días",
+  "hace 7 días",
+];
+
+// SEO
+const diasSemana = [
+  "domingo",
+  "lunes",
+  "martes",
+  "miércoles",
+  "jueves",
+  "viernes",
+  "sábado",
+];
+const last7ConDia = last7.map((r) => {
+  const d = new Date(r.raw + "T12:00:00");
+  return { ...r, diaSemana: diasSemana[d.getDay()] };
+});
+
+const pctVar7 = getPct(var7);
+const pctVar30 = getPct(var30);
+const varTexto7 =
+  pctVar7 !== null
+    ? `${pctVar7 >= 0 ? "subió" : "bajó"} un ${Math.abs(pctVar7).toFixed(2)}%`
+    : null;
+const varTexto30 =
+  pctVar30 !== null
+    ? `${pctVar30 >= 0 ? "subió" : "bajó"} un ${Math.abs(pctVar30).toFixed(2)}%`
+    : null;
+
+const extraConversiones = [200, 300, 500, 1000, 2000, 5000];
 ---
 
 <BaseLayout
@@ -94,17 +163,15 @@ const var60Class = getClass(var60);
         <span class="text-blue-400 font-medium">
           $ {usdValue.toLocaleString("es-CL")}
         </span>
-        <span class="text-slate-500">
-          - Actualizado al {updatedAt}
-        </span>
-        <span class="text-slate-600"> · Banco Central de Chile (BCCh) </span>
+        <span class="text-slate-500">- Actualizado al {updatedAt}</span>
+        <span class="text-slate-600"> · Banco Central de Chile (BCCh)</span>
       </div>
 
       <!-- Input header -->
       <div class="flex items-center justify-between mb-2">
-        <label id="inputLabel" class="block text-sm text-slate-300">
-          Ingresa USD
-        </label>
+        <label id="inputLabel" class="block text-sm text-slate-300"
+          >Ingresa USD</label
+        >
         <button
           id="swapBtn"
           type="button"
@@ -189,13 +256,107 @@ const var60Class = getClass(var60);
 
       <div class="sr-only">
         {
-          [1, 10, 50, 100, 500, 1000].map((value) => (
+          [1, 10, 50, 100, 500, 1000].map((v) => (
             <p>
-              {value} USD equivalen aproximadamente a $
-              {(value * usdValue).toLocaleString("es-CL")} pesos chilenos.
+              {v} USD equivalen aproximadamente a $
+              {(v * usdValue).toLocaleString("es-CL")} pesos chilenos.
             </p>
           ))
         }
+        {
+          extraConversiones.map((v) => (
+            <p>
+              {v} USD equivalen a ${(v * usdValue).toLocaleString("es-CL")}{" "}
+              pesos chilenos.
+            </p>
+          ))
+        }
+        <p>
+          1 dólar equivale a ${usdValue.toLocaleString("es-CL")} pesos chilenos.
+        </p>
+      </div>
+    </section>
+
+    <!-- Tabla últimos 7 días -->
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">
+        Dólar observado últimos 7 días
+      </h2>
+      <p class="text-slate-500 text-xs mb-3">
+        Valores diarios publicados por el Banco Central de Chile.
+      </p>
+
+      <div class="rounded-xl border border-white/10 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10 bg-white/5">
+              <th class="py-2 px-4 text-left font-normal text-slate-400"
+                >Fecha</th
+              >
+              <th class="py-2 px-4 text-right font-normal text-slate-400"
+                >Dólar</th
+              >
+              <th class="py-2 px-4 text-right font-normal text-slate-400"
+                >Variación</th
+              >
+            </tr>
+          </thead>
+          <tbody>
+            {
+              last7.map((r, i) => (
+                <tr
+                  class={`border-b border-white/5 ${i === 0 ? "bg-white/5" : ""}`}
+                >
+                  <td class="py-2 px-4 text-slate-400">
+                    <span class="text-slate-600 mr-1">{dayLabels[i]}</span>
+                    {r.date}
+                  </td>
+                  <td class="py-2 px-4 text-right text-slate-200">
+                    ${" "}
+                    {r.usd.toLocaleString("es-CL", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
+                  <td
+                    class={`py-2 px-4 text-right text-xs font-medium ${r.varClass}`}
+                  >
+                    {r.varText}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sr-only">
+        {
+          last7ConDia.map((r, i) => (
+            <p>
+              Dólar observado {dayLabels[i]}, el {r.diaSemana} {r.date}: $
+              {r.usd.toLocaleString("es-CL", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}{" "}
+              pesos chilenos. Variación: {r.varText}.
+            </p>
+          ))
+        }
+        {
+          varTexto7 && (
+            <p>El dólar observado {varTexto7} en los últimos 7 días.</p>
+          )
+        }
+        {
+          varTexto30 && (
+            <p>El dólar observado {varTexto30} en los últimos 30 días.</p>
+          )
+        }
+        <p>
+          Útil para calcular importaciones, exportaciones, compras
+          internacionales y contratos en dólares.
+        </p>
       </div>
     </section>
 
@@ -213,7 +374,6 @@ const var60Class = getClass(var60);
         >
           En pocas palabras
         </button>
-
         <button
           id="tabFull"
           class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
@@ -223,7 +383,6 @@ const var60Class = getClass(var60);
         </button>
       </div>
 
-      <!-- Corto -->
       <div id="contentShort">
         <p>
           El dólar observado es el precio oficial del dólar en Chile, calculado
@@ -233,7 +392,6 @@ const var60Class = getClass(var60);
         </p>
       </div>
 
-      <!-- Completo -->
       <div id="contentFull" class="hidden">
         <p>
           El dólar observado es el tipo de cambio del peso chileno (CLP)
@@ -242,12 +400,16 @@ const var60Class = getClass(var60);
           operaciones del mercado cambiario formal realizadas el día hábil
           anterior.
         </p>
-
         <p class="mt-3">
           Es el valor utilizado como referencia oficial en Chile para contratos,
           declaraciones de impuestos, importaciones y exportaciones. Difiere del
           dólar que ofrecen los bancos o casas de cambio, que incluyen márgenes
           comerciales.
+        </p>
+        <p class="mt-3">
+          Para convertir USD a CLP usando el dólar observado, se multiplica el
+          monto en dólares por el valor publicado para ese día. Este conversor
+          usa el valor más reciente disponible publicado por el Banco Central.
         </p>
       </div>
 
@@ -337,26 +499,19 @@ const var60Class = getClass(var60);
         result.innerText = "—";
         return;
       }
-
       result.innerText =
         mode === "USD_TO_CLP"
           ? formatCLP(amount * usdValue)
           : formatUSD(amount / usdValue);
     }
 
-    // -----------------------------
-    // TABS (explicación UF)
-    // -----------------------------
     function activateTab(tab) {
       const isShort = tab === "short";
-
       contentShort.classList.toggle("hidden", !isShort);
       contentFull.classList.toggle("hidden", isShort);
-
       tabShort.classList.toggle("bg-white/10", isShort);
       tabShort.classList.toggle("text-white", isShort);
       tabShort.classList.toggle("text-slate-300", !isShort);
-
       tabFull.classList.toggle("bg-white/10", !isShort);
       tabFull.classList.toggle("text-white", !isShort);
       tabFull.classList.toggle("text-slate-300", isShort);
