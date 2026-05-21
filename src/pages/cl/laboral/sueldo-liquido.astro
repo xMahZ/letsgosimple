@@ -1,0 +1,458 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+import hardcodeRaw from "@/data/hardcode.json";
+const hardcode = hardcodeRaw as any;
+
+const afpData = hardcode.afp;
+const descuentosFijos = hardcode.descuentosFijos;
+const topeImponible = hardcode.topeImponible;
+const impuestoUnico = hardcode.impuestoUnico;
+const utm = hardcode.utm;
+const uf = hardcode.uf;
+const tablaOrientativa = hardcode.tablaOrientativa;
+
+const afpDefault = afpData.opciones[0];
+const topeImponiblePesos = Math.round(topeImponible.uf * uf.valor);
+const utmValor = utm.valor;
+
+const liquidosReferencia = tablaOrientativa.liquidosReferencia;
+---
+
+<BaseLayout
+  title="Calculadora Sueldo Líquido Chile 2026 — Bruto a Líquido al instante"
+  description="Calcula tu sueldo líquido en Chile al instante. Convierte bruto a líquido o líquido a bruto considerando AFP, salud, cesantía e impuesto único. Actualizado 2026."
+>
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Cómo calcular el sueldo líquido en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Para calcular el sueldo líquido en Chile se descuenta del bruto: AFP (10% + comisión), salud (7%), cesantía (0,6%) e impuesto único de segunda categoría si corresponde. Los descuentos previsionales tienen un tope imponible de 90 UF."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cuánto se descuenta del sueldo bruto en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Los descuentos obligatorios son aproximadamente 17,6% más la comisión AFP (entre 0,49% y 1,45%) más el impuesto único si el sueldo supera el primer tramo exento."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Qué es el tope imponible en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "El tope imponible es el monto máximo sobre el cual se calculan los descuentos previsionales. En Chile equivale a 90 UF mensuales. Sobre el exceso no se aplican descuentos de AFP, salud ni cesantía."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Calculadora de Sueldo Líquido Chile
+    </h1>
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      De bruto a líquido y de líquido a bruto al instante
+    </h2>
+
+    <!-- Calculadora -->
+    <div
+      class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5 space-y-5"
+    >
+      <!-- AFP selector -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1.5">Tu AFP</label>
+        <select
+          id="selectAfp"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition appearance-none"
+        >
+          {
+            afpData.opciones.map((a: any) => (
+              <option value={a.comision}>
+                {a.nombre} — comisión {(a.comision * 100).toFixed(2)}%
+              </option>
+            ))
+          }
+        </select>
+      </div>
+
+      <!-- Inputs -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-slate-300 mb-1.5">Sueldo Bruto</label
+          >
+          <input
+            id="inputBruto"
+            type="number"
+            step="1000"
+            placeholder="Ej: 1.500.000"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 mb-1.5"
+            >Sueldo Líquido</label
+          >
+          <input
+            id="inputLiquido"
+            type="number"
+            step="1000"
+            placeholder="Ej: 1.200.000"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+          />
+        </div>
+      </div>
+
+      <!-- Desglose -->
+      <div
+        id="desglose"
+        class="hidden rounded-lg border border-white/10 bg-[#070b16]/60 divide-y divide-white/5 text-sm"
+      >
+        <div class="flex justify-between px-4 py-2.5">
+          <span class="text-slate-400">AFP (10% + comisión)</span>
+          <span id="dAfp" class="text-slate-200">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-2.5">
+          <span class="text-slate-400">Salud (7%)</span>
+          <span id="dSalud" class="text-slate-200">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-2.5">
+          <span class="text-slate-400">Cesantía (0,6%)</span>
+          <span id="dCesantia" class="text-slate-200">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-2.5">
+          <span class="text-slate-400">Impuesto único</span>
+          <span id="dImpuesto" class="text-slate-200">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-2.5 bg-white/5">
+          <span class="text-slate-300 font-medium">Total descuentos</span>
+          <span id="dTotal" class="text-orange-400 font-medium">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-2.5">
+          <span class="text-slate-300 font-medium">Sueldo líquido</span>
+          <span id="dLiquido" class="text-white font-semibold">—</span>
+        </div>
+      </div>
+
+      <p id="topeAviso" class="hidden text-xs text-amber-400/80">
+        ⚠️ Tu sueldo supera el tope imponible de 90 UF. Los descuentos
+        previsionales se calculan solo hasta ese límite.
+      </p>
+    </div>
+
+    <!-- Tabla orientativa -->
+    <section class="mt-8">
+      <h2 class="text-white font-semibold text-base mb-1">
+        Para orientarte, estos son algunos valores de referencia
+      </h2>
+      <p class="text-slate-500 text-xs mb-3">
+        Valores calculados con la AFP que seleccionaste. Son orientativos.
+      </p>
+
+      <div class="rounded-xl border border-white/10 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10 bg-white/5">
+              <th class="py-2 px-4 text-left font-normal text-slate-400"
+                >Sueldo Líquido</th
+              >
+              <th class="py-2 px-4 text-right font-normal text-slate-400"
+                >Bruto necesario</th
+              >
+            </tr>
+          </thead>
+          <tbody id="tablaBody">
+            {
+              liquidosReferencia.map((liq: any, i: number) => (
+                <tr
+                  class="tabla-row border-b border-white/5 hover:bg-white/5 cursor-pointer transition"
+                  data-liquido={liq}
+                >
+                  <td class="py-2.5 px-4 text-slate-300">
+                    $ {liq.toLocaleString("es-CL")}
+                  </td>
+                  <td class="py-2.5 px-4 text-right text-slate-500 tabla-bruto">
+                    calculando...
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Qué es el sueldo líquido?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          El sueldo líquido es lo que recibes después de que tu empleador
+          descuenta AFP, salud y cesantía de tu sueldo bruto. En Chile, estos
+          descuentos representan aproximadamente un 20% del bruto, más el
+          impuesto único si tu sueldo supera cierto monto.
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>
+          El sueldo líquido es el monto que efectivamente depositan en tu cuenta
+          cada mes, una vez aplicados todos los descuentos legales sobre tu
+          sueldo bruto. En Chile, los descuentos obligatorios son AFP (10% más
+          comisión entre 0,49% y 1,45% según la AFP), salud (7% para Fonasa o
+          Isapre), cesantía (0,6% el trabajador) e impuesto único de segunda
+          categoría, que se aplica con tramos progresivos definidos por el SII
+          sobre remuneraciones que superan aproximadamente $847.000.
+        </p>
+        <p class="mt-3">
+          Los descuentos previsionales se calculan solo hasta el tope imponible
+          de 90 UF mensual. Para calcular tu sueldo líquido ingresa tu bruto
+          arriba y selecciona tu AFP. Si estás negociando, usa el campo líquido
+          para saber cuánto bruto debes pedir.
+        </p>
+      </div>
+
+      <h2 class="text-white font-semibold text-lg mt-8 mb-2">
+        ¿Cómo usar esta calculadora?
+      </h2>
+      <p>
+        Selecciona tu AFP, ingresa tu sueldo bruto para ver el líquido, o
+        ingresa el líquido que quieres recibir para saber qué bruto negociar. El
+        desglose muestra cada descuento por separado.
+      </p>
+
+      <div class="sr-only">
+        <p>
+          Calculadora de sueldo líquido Chile 2026 con AFP, salud, cesantía e
+          impuesto único.
+        </p>
+        <p>
+          Los descuentos obligatorios en Chile son AFP 10% más comisión, salud
+          7%, cesantía 0,6% e impuesto único de segunda categoría.
+        </p>
+        <p>
+          El tope imponible en Chile es de 90 UF mensuales para el cálculo de
+          descuentos previsionales.
+        </p>
+        <p>
+          Para calcular bruto desde líquido se debe considerar el efecto de
+          todos los descuentos en forma inversa.
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script
+  is:inline
+  define:vars={{
+    afpOpciones: hardcode.afp.opciones,
+    descuentosFijos: hardcode.descuentosFijos,
+    topeImponiblePesos,
+    utmValor,
+    tramos: hardcode.impuestoUnico.tramos,
+    liquidosReferencia,
+  }}
+>
+  document.addEventListener("DOMContentLoaded", () => {
+    const selectAfp = document.getElementById("selectAfp");
+    const inputBruto = document.getElementById("inputBruto");
+    const inputLiquido = document.getElementById("inputLiquido");
+    const desglose = document.getElementById("desglose");
+    const topeAviso = document.getElementById("topeAviso");
+    const dAfp = document.getElementById("dAfp");
+    const dSalud = document.getElementById("dSalud");
+    const dCesantia = document.getElementById("dCesantia");
+    const dImpuesto = document.getElementById("dImpuesto");
+    const dTotal = document.getElementById("dTotal");
+    const dLiquido = document.getElementById("dLiquido");
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    function fmt(n) {
+      return "$ " + Math.round(n).toLocaleString("es-CL");
+    }
+
+    function getComision() {
+      return parseFloat(selectAfp.value);
+    }
+
+    function calcImpuesto(baseImponible) {
+      const baseUtm = baseImponible / utmValor;
+      for (const t of tramos) {
+        const max = t.hasta === null ? Infinity : t.hasta;
+        if (baseUtm <= max) {
+          return Math.max(
+            0,
+            Math.round((baseUtm * t.tasa - t.rebaja) * utmValor),
+          );
+        }
+      }
+      return 0;
+    }
+
+    function brutoToLiquido(bruto) {
+      const base = Math.min(bruto, topeImponiblePesos);
+      const comision = getComision();
+      const afp = Math.round(base * (descuentosFijos.cotizacionAfp + comision));
+      const salud = Math.round(base * descuentosFijos.salud);
+      const cesantia = Math.round(base * descuentosFijos.cesantia);
+      const baseImp = bruto - afp - salud - cesantia;
+      const impuesto = calcImpuesto(baseImp);
+      const total = afp + salud + cesantia + impuesto;
+      const liquido = bruto - total;
+      return {
+        afp,
+        salud,
+        cesantia,
+        impuesto,
+        total,
+        liquido,
+        superaTope: bruto > topeImponiblePesos,
+      };
+    }
+
+    // Búsqueda binaria para encontrar bruto dado un líquido objetivo
+    function liquidoToBruto(liquidoTarget) {
+      let lo = liquidoTarget;
+      let hi = liquidoTarget * 2;
+      for (let i = 0; i < 60; i++) {
+        const mid = Math.round((lo + hi) / 2);
+        const { liquido } = brutoToLiquido(mid);
+        if (Math.abs(liquido - liquidoTarget) < 1) return mid;
+        if (liquido < liquidoTarget) lo = mid;
+        else hi = mid;
+      }
+      return Math.round((lo + hi) / 2);
+    }
+
+    function mostrarDesglose(bruto) {
+      const r = brutoToLiquido(bruto);
+      dAfp.innerText = fmt(r.afp);
+      dSalud.innerText = fmt(r.salud);
+      dCesantia.innerText = fmt(r.cesantia);
+      dImpuesto.innerText = r.impuesto > 0 ? fmt(r.impuesto) : "—";
+      dTotal.innerText = fmt(r.total);
+      dLiquido.innerText = fmt(r.liquido);
+      desglose.classList.remove("hidden");
+      topeAviso.classList.toggle("hidden", !r.superaTope);
+      return r;
+    }
+
+    function actualizarTabla() {
+      document.querySelectorAll(".tabla-row").forEach((row) => {
+        const liq = parseInt(row.dataset.liquido);
+        const bruto = liquidoToBruto(liq);
+        row.querySelector(".tabla-bruto").innerText =
+          "$ " + bruto.toLocaleString("es-CL");
+      });
+    }
+
+    // Inputs
+    let lastEdited = null;
+
+    inputBruto.addEventListener("input", () => {
+      lastEdited = "bruto";
+      const bruto = parseFloat(inputBruto.value);
+      if (isNaN(bruto) || bruto <= 0) {
+        desglose.classList.add("hidden");
+        inputLiquido.value = "";
+        return;
+      }
+      const r = mostrarDesglose(bruto);
+      inputLiquido.value = Math.round(r.liquido);
+    });
+
+    inputLiquido.addEventListener("input", () => {
+      lastEdited = "liquido";
+      const liq = parseFloat(inputLiquido.value);
+      if (isNaN(liq) || liq <= 0) {
+        desglose.classList.add("hidden");
+        inputBruto.value = "";
+        return;
+      }
+      const bruto = liquidoToBruto(liq);
+      inputBruto.value = bruto;
+      mostrarDesglose(bruto);
+    });
+
+    selectAfp.addEventListener("change", () => {
+      actualizarTabla();
+      if (lastEdited === "bruto" && inputBruto.value) {
+        const bruto = parseFloat(inputBruto.value);
+        const r = mostrarDesglose(bruto);
+        inputLiquido.value = Math.round(r.liquido);
+      } else if (lastEdited === "liquido" && inputLiquido.value) {
+        const liq = parseFloat(inputLiquido.value);
+        const bruto = liquidoToBruto(liq);
+        inputBruto.value = bruto;
+        mostrarDesglose(bruto);
+      }
+    });
+
+    // Click en fila de tabla
+    document.querySelectorAll(".tabla-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const liq = parseInt(row.dataset.liquido);
+        inputLiquido.value = liq;
+        lastEdited = "liquido";
+        const bruto = liquidoToBruto(liq);
+        inputBruto.value = bruto;
+        mostrarDesglose(bruto);
+        inputBruto.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+
+    // Tabs
+    function activateTab(tab) {
+      const isShort = tab === "short";
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+    tabFull?.addEventListener("click", () => activateTab("full"));
+    activateTab("short");
+
+    // Init tabla
+    actualizarTabla();
+  });
+</script>

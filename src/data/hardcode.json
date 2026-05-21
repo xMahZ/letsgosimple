@@ -1,0 +1,52 @@
+{
+  "lastUpdated": "2026-01-01",
+  "afp": {
+    "validUntil": "2027-01-31",
+    "opciones": [
+      { "nombre": "Uno", "comision": 0.0049 },
+      { "nombre": "Modelo", "comision": 0.0058 },
+      { "nombre": "Habitat", "comision": 0.0095 },
+      { "nombre": "Planvital", "comision": 0.0116 },
+      { "nombre": "Capital", "comision": 0.0144 },
+      { "nombre": "Cuprum", "comision": 0.0144 },
+      { "nombre": "Provida", "comision": 0.0145 }
+    ]
+  },
+  "descuentosFijos": {
+    "validUntil": "2027-01-31",
+    "cotizacionAfp": 0.1,
+    "salud": 0.07,
+    "cesantia": 0.006
+  },
+  "topeImponible": {
+    "validUntil": "2027-01-31",
+    "uf": 90
+  },
+  "impuestoUnico": {
+    "validUntil": "2027-01-31",
+    "nota": "Tramos en UTM, se convierten a pesos usando UTM vigente",
+    "tramos": [
+      { "desde": 0, "hasta": 13.5, "tasa": 0, "rebaja": 0 },
+      { "desde": 13.5, "hasta": 30, "tasa": 0.04, "rebaja": 0.54 },
+      { "desde": 30, "hasta": 50, "tasa": 0.08, "rebaja": 1.74 },
+      { "desde": 50, "hasta": 70, "tasa": 0.135, "rebaja": 4.49 },
+      { "desde": 70, "hasta": 90, "tasa": 0.23, "rebaja": 11.14 },
+      { "desde": 90, "hasta": 120, "tasa": 0.304, "rebaja": 17.8 },
+      { "desde": 120, "hasta": 150, "tasa": 0.355, "rebaja": 23.92 },
+      { "desde": 150, "hasta": null, "tasa": 0.4, "rebaja": 30.67 }
+    ]
+  },
+  "utm": {
+    "validUntil": "2026-05-31",
+    "valor": 68152
+  },
+  "uf": {
+    "validUntil": "2026-05-31",
+    "valor": 38500
+  },
+  "tablaOrientativa": {
+    "liquidosReferencia": [
+      800000, 1000000, 1200000, 1400000, 1800000, 2000000, 2500000, 3000000
+    ]
+  }
+}

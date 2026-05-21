@@ -1,0 +1,749 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+import sueldoDataRaw from "@/data/hardcode.json";
+
+const sueldoData = sueldoDataRaw as any;
+
+const afpData = sueldoData.afp;
+const descuentosFijos = sueldoData.descuentosFijos;
+const topeImponible = sueldoData.topeImponible;
+const impuestoUnico = sueldoData.impuestoUnico;
+const utm = sueldoData.utm;
+const uf = sueldoData.uf;
+
+const topeImponiblePesos = Math.round(topeImponible.uf * uf.valor);
+
+const utmValor = utm.valor;
+
+const afpsOrdenadas = [...afpData.opciones].sort(
+  (a, b) => a.comision - b.comision,
+);
+
+const afpMasBarata = afpsOrdenadas[0];
+---
+
+<BaseLayout
+  title="Comparador AFP Chile 2026 — Calcula cuánto pagas de comisión"
+  description="Compara las comisiones de todas las AFP en Chile. Ingresa tu sueldo, selecciona tu AFP y descubre cuánto podrías ahorrar cambiando. Actualizado 2026."
+>
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Qué es la comisión AFP?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La comisión AFP es el porcentaje que cobra cada AFP por administrar tus ahorros previsionales. Se calcula sobre tu sueldo imponible y varía según la AFP."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cambiarme a una AFP más barata afecta mis fondos?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Cambiarte a una AFP con menor comisión no afecta el dinero acumulado en tus fondos. Solo reduce el costo mensual que pagas por administración."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Las AFP cobran distinto porcentaje?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí. En Chile las comisiones AFP varían según cada administradora y se descuentan mensualmente sobre el sueldo imponible."
+            }
+          }
+        ]
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Comparador AFP Chile",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "All"
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-3xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Comparador de Comisiones AFP Chile
+    </h1>
+
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      Descubre cuánto te cobra tu AFP y cuánto podrías ahorrar
+    </h2>
+
+    <!-- Inputs -->
+    <div
+      class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5 space-y-5"
+    >
+      <div class="grid md:grid-cols-3 gap-4">
+        <!-- Bruto -->
+        <div>
+          <label class="block text-sm text-slate-300 mb-1.5">
+            Sueldo bruto
+          </label>
+
+          <input
+            id="inputBruto"
+            type="text"
+            inputmode="numeric"
+            placeholder="Ej: 1.500.000"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+          />
+        </div>
+
+        <!-- Líquido -->
+        <div>
+          <label class="block text-sm text-slate-300 mb-1.5">
+            Sueldo líquido
+          </label>
+
+          <input
+            id="inputLiquido"
+            type="text"
+            inputmode="numeric"
+            placeholder="Ej: 1.200.000"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+          />
+        </div>
+
+        <!-- AFP -->
+        <div>
+          <label class="block text-sm text-slate-300 mb-1.5">
+            Tu AFP actual
+          </label>
+
+          <select
+            id="selectAfp"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition appearance-none"
+          >
+            {
+              afpsOrdenadas.map((a: any) => (
+                <option value={a.nombre}>
+                  {a.nombre} — {(a.comision * 100).toFixed(2)}%
+                </option>
+              ))
+            }
+          </select>
+        </div>
+      </div>
+
+      <p id="topeAviso" class="hidden text-xs text-amber-400/80">
+        ⚠️ Tu sueldo supera el tope imponible de 90 UF. Las comisiones AFP se
+        calculan solo hasta ese límite.
+      </p>
+    </div>
+
+    <!-- Comparativa -->
+    <section class="mt-8">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        Comparación de comisiones AFP
+      </h2>
+
+      <div id="afpList" class="space-y-3"></div>
+    </section>
+
+    <!-- Proyección -->
+    <section class="mt-8 rounded-xl border border-white/10 bg-white/5 p-6">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 class="text-white font-semibold text-lg">Proyección</h2>
+
+          <p id="projectionContext" class="text-xs text-slate-500 mt-1">
+            Comparando AFP actual con AFP destino
+          </p>
+        </div>
+      </div>
+
+      <!-- AFP destino -->
+      <div class="mt-5">
+        <label class="block text-sm text-slate-300 mb-1.5"> Cambiarme a </label>
+
+        <select
+          id="selectDestinoAfp"
+          class="w-full md:max-w-[280px] px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition appearance-none"
+        >
+          {
+            afpsOrdenadas.map((a: any) => (
+              <option
+                value={a.nombre}
+                selected={a.nombre === afpMasBarata.nombre}
+              >
+                {a.nombre} — {(a.comision * 100).toFixed(2)}%
+              </option>
+            ))
+          }
+        </select>
+      </div>
+
+      <!-- Toggle -->
+      <div class="mt-5">
+        <label
+          class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"
+        >
+          <input
+            id="toggleRentabilidad"
+            type="checkbox"
+            checked
+            class="accent-blue-500"
+          />
+
+          <span> Incluir rentabilidad histórica referencial </span>
+        </label>
+      </div>
+
+      <!-- Rentabilidad -->
+      <div id="rentabilidadBox" class="mt-5">
+        <label class="block text-sm text-slate-300 mb-1.5">
+          Rentabilidad anual referencial
+        </label>
+
+        <div class="relative max-w-[220px]">
+          <input
+            id="inputRentabilidad"
+            type="number"
+            step="0.01"
+            value="5.29"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+          />
+
+          <span
+            class="absolute right-10 top-1/2 -translate-y-1/2 text-slate-500 text-sm"
+          >
+            %
+          </span>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div class="mt-6 space-y-3">
+        <div class="flex justify-between items-center">
+          <span id="mensualLabel" class="text-slate-400">
+            Ahorro mensual estimado
+          </span>
+
+          <span id="pMensual" class="font-semibold"> — </span>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400"> Proyección en 10 años </span>
+
+          <span id="p10" class="text-white font-semibold"> — </span>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400"> Proyección en 20 años </span>
+
+          <span id="p20" class="text-white font-semibold"> — </span>
+        </div>
+      </div>
+
+      <p class="mt-5 text-xs text-slate-500 leading-relaxed">
+        Tasa referencial histórica promedio del sistema AFP en Chile. Fuente:
+        estudio académico basado en datos de la Superintendencia de Pensiones.
+        No garantiza rentabilidad futura.
+      </p>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Qué es la comisión AFP?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          La comisión AFP es el porcentaje que te cobran mensualmente por
+          administrar tus ahorros previsionales. En Chile varía entre 0,49% y
+          1,45% según la AFP. Aunque parece poco, la diferencia acumulada en
+          décadas puede ser significativa.
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>
+          Todas las AFP en Chile invierten tu dinero de forma similar, siguiendo
+          las mismas reglas de la Superintendencia de Pensiones. La principal
+          diferencia entre ellas es la comisión que cobran mensualmente sobre tu
+          sueldo imponible.
+        </p>
+
+        <p class="mt-3">
+          Esta comisión se descuenta directo de tu sueldo antes de que llegue a
+          tu cuenta de ahorro. A eso se suma el 10% de cotización obligatoria
+          que sí va a tu cuenta.
+        </p>
+
+        <p class="mt-3">
+          Los descuentos se calculan sobre el sueldo imponible hasta un tope de
+          90 UF mensual. Cambiar a una AFP más barata no afecta tu ahorro
+          acumulado ni tus fondos — solo reduces el costo mensual.
+        </p>
+
+        <p class="mt-3">
+          Para comparar cuánto pagas hoy y cuánto podrías ahorrar, ingresa tu
+          sueldo arriba y selecciona tu AFP actual.
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script
+  is:inline
+  define:vars={{
+    afpsOrdenadas,
+    afpMasBarata,
+    descuentosFijos,
+    topeImponiblePesos,
+    utmValor,
+    tramos: impuestoUnico.tramos,
+  }}
+>
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputBruto = document.getElementById("inputBruto");
+
+    const inputLiquido = document.getElementById("inputLiquido");
+
+    const selectAfp = document.getElementById("selectAfp");
+
+    const selectDestinoAfp = document.getElementById("selectDestinoAfp");
+
+    const afpList = document.getElementById("afpList");
+
+    const pMensual = document.getElementById("pMensual");
+
+    const p10 = document.getElementById("p10");
+
+    const p20 = document.getElementById("p20");
+
+    const mensualLabel = document.getElementById("mensualLabel");
+
+    const projectionContext = document.getElementById("projectionContext");
+
+    const toggleRentabilidad = document.getElementById("toggleRentabilidad");
+
+    const rentabilidadBox = document.getElementById("rentabilidadBox");
+
+    const inputRentabilidad = document.getElementById("inputRentabilidad");
+
+    const topeAviso = document.getElementById("topeAviso");
+
+    const tabShort = document.getElementById("tabShort");
+
+    const tabFull = document.getElementById("tabFull");
+
+    const contentShort = document.getElementById("contentShort");
+
+    const contentFull = document.getElementById("contentFull");
+
+    let lastEdited = "bruto";
+
+    function fmt(n) {
+      return "$ " + Math.round(n).toLocaleString("es-CL");
+    }
+
+    function parseInput(str) {
+      return parseFloat(String(str).replace(/[^0-9]/g, ""));
+    }
+
+    function fmtInput(n) {
+      return "$ " + Math.round(n).toLocaleString("es-CL");
+    }
+
+    function formatearCampo(input) {
+      const raw = parseInput(input.value);
+
+      if (!isNaN(raw) && raw > 0) {
+        input.value = fmtInput(raw);
+
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }
+
+    function getComision() {
+      const nombre = selectAfp.value;
+
+      return afpsOrdenadas.find((a) => a.nombre === nombre).comision;
+    }
+
+    function calcImpuesto(baseImponible) {
+      const baseUtm = baseImponible / utmValor;
+
+      for (const t of tramos) {
+        const max = t.hasta === null ? Infinity : t.hasta;
+
+        if (baseUtm <= max) {
+          return Math.max(
+            0,
+            Math.round((baseUtm * t.tasa - t.rebaja) * utmValor),
+          );
+        }
+      }
+
+      return 0;
+    }
+
+    function brutoToLiquido(bruto) {
+      const base = Math.min(bruto, topeImponiblePesos);
+
+      const comision = getComision();
+
+      const afp = Math.round(base * (descuentosFijos.cotizacionAfp + comision));
+
+      const salud = Math.round(base * descuentosFijos.salud);
+
+      const cesantia = Math.round(base * descuentosFijos.cesantia);
+
+      const baseImp = bruto - afp - salud - cesantia;
+
+      const impuesto = calcImpuesto(baseImp);
+
+      const total = afp + salud + cesantia + impuesto;
+
+      return {
+        liquido: bruto - total,
+      };
+    }
+
+    function liquidoToBruto(liquidoTarget) {
+      let lo = liquidoTarget;
+
+      let hi = liquidoTarget * 2;
+
+      for (let i = 0; i < 60; i++) {
+        const mid = Math.round((lo + hi) / 2);
+
+        const { liquido } = brutoToLiquido(mid);
+
+        if (Math.abs(liquido - liquidoTarget) <= 1) {
+          return mid;
+        }
+
+        if (liquido < liquidoTarget) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+
+      return Math.round((lo + hi) / 2);
+    }
+
+    function calcularCosto(bruto, comision) {
+      const imponible = Math.min(bruto, topeImponiblePesos);
+
+      return Math.round(imponible * comision);
+    }
+
+    function proyectarSimple(mensual, años) {
+      return mensual * años * 12;
+    }
+
+    function proyectarCompuesto(mensual, tasaAnual, años) {
+      const r = tasaAnual / 100 / 12;
+
+      const n = años * 12;
+
+      if (r <= 0) {
+        return proyectarSimple(mensual, años);
+      }
+
+      return mensual * (((1 + r) ** n - 1) / r);
+    }
+
+    function actualizarComparador(bruto) {
+      const afpActualNombre = selectAfp.value;
+
+      const afpActual = afpsOrdenadas.find((a) => a.nombre === afpActualNombre);
+
+      const costoActual = calcularCosto(bruto, afpActual.comision);
+
+      afpList.innerHTML = "";
+
+      afpsOrdenadas.forEach((afp) => {
+        const costo = calcularCosto(bruto, afp.comision);
+
+        const diferencia = costo - costoActual;
+
+        const isCurrent = afp.nombre === afpActualNombre;
+
+        const isCheapest = afp.nombre === afpMasBarata.nombre;
+
+        const row = document.createElement("div");
+
+        row.className = "rounded-xl border p-4 transition";
+
+        if (isCurrent) {
+          row.className += " border-blue-500/40 bg-blue-500/10";
+        } else {
+          row.className += " border-white/10 bg-white/5";
+        }
+
+        let estado = "";
+
+        if (diferencia < 0) {
+          estado = `
+            <span class="text-emerald-400 text-sm font-medium">
+              Ahorras ${fmt(Math.abs(diferencia))} al mes
+            </span>
+          `;
+        }
+
+        if (diferencia > 0) {
+          estado = `
+            <span class="text-red-400 text-sm font-medium">
+              Pagas ${fmt(diferencia)} más al mes
+            </span>
+          `;
+        }
+
+        if (diferencia === 0) {
+          estado = `
+            <span class="text-slate-500 text-sm">
+              Tu AFP actual
+            </span>
+          `;
+        }
+
+        row.innerHTML = `
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-white font-medium">
+                  ${afp.nombre}
+                </span>
+
+                ${
+                  isCurrent
+                    ? `
+                  <span class="text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/20">
+                    TU AFP
+                  </span>
+                `
+                    : ""
+                }
+
+                ${
+                  isCheapest
+                    ? `
+                  <span class="text-[10px] px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/20">
+                    MÁS BARATA
+                  </span>
+                `
+                    : ""
+                }
+              </div>
+
+              <div class="mt-1 text-slate-400 text-sm">
+                Comisión ${(afp.comision * 100).toFixed(2)}%
+              </div>
+            </div>
+
+            <div class="text-right">
+              <div class="text-white font-semibold">
+                ${fmt(costo)}
+              </div>
+
+              <div class="mt-1">
+                ${estado}
+              </div>
+            </div>
+          </div>
+        `;
+
+        afpList.appendChild(row);
+      });
+
+      const afpDestino = afpsOrdenadas.find(
+        (a) => a.nombre === selectDestinoAfp.value,
+      );
+
+      const costoDestino = calcularCosto(bruto, afpDestino.comision);
+
+      const diferenciaMensual = costoActual - costoDestino;
+
+      const usarRentabilidad = toggleRentabilidad.checked;
+
+      const tasa = parseFloat(inputRentabilidad.value) || 0;
+
+      let proy10 = 0;
+      let proy20 = 0;
+
+      if (usarRentabilidad) {
+        proy10 = proyectarCompuesto(Math.abs(diferenciaMensual), tasa, 10);
+
+        proy20 = proyectarCompuesto(Math.abs(diferenciaMensual), tasa, 20);
+      } else {
+        proy10 = proyectarSimple(Math.abs(diferenciaMensual), 10);
+
+        proy20 = proyectarSimple(Math.abs(diferenciaMensual), 20);
+      }
+
+      projectionContext.innerText = `Comparando ${afpActual.nombre} con ${afpDestino.nombre}`;
+
+      if (diferenciaMensual > 0) {
+        mensualLabel.innerText = "Ahorro mensual estimado";
+
+        pMensual.className = "text-emerald-400 font-semibold";
+
+        pMensual.innerText = fmt(diferenciaMensual);
+      } else if (diferenciaMensual < 0) {
+        mensualLabel.innerText = "Costo adicional mensual";
+
+        pMensual.className = "text-red-400 font-semibold";
+
+        pMensual.innerText = fmt(Math.abs(diferenciaMensual));
+      } else {
+        mensualLabel.innerText = "Diferencia mensual";
+
+        pMensual.className = "text-slate-400 font-semibold";
+
+        pMensual.innerText = "$ 0";
+      }
+
+      p10.innerText = fmt(proy10);
+      p20.innerText = fmt(proy20);
+
+      rentabilidadBox.classList.toggle("hidden", !usarRentabilidad);
+    }
+
+    function actualizarDesdeBruto() {
+      const bruto = parseInput(inputBruto.value);
+
+      if (isNaN(bruto) || bruto <= 0) {
+        inputLiquido.value = "";
+        afpList.innerHTML = "";
+        return;
+      }
+
+      const r = brutoToLiquido(bruto);
+
+      inputLiquido.value = fmtInput(r.liquido);
+
+      actualizarComparador(bruto);
+
+      topeAviso.classList.toggle("hidden", bruto <= topeImponiblePesos);
+    }
+
+    function actualizarDesdeLiquido() {
+      const liquido = parseInput(inputLiquido.value);
+
+      if (isNaN(liquido) || liquido <= 0) {
+        inputBruto.value = "";
+        afpList.innerHTML = "";
+        return;
+      }
+
+      const bruto = liquidoToBruto(liquido);
+
+      inputBruto.value = fmtInput(bruto);
+
+      actualizarComparador(bruto);
+
+      topeAviso.classList.toggle("hidden", bruto <= topeImponiblePesos);
+    }
+
+    inputBruto.addEventListener("input", () => {
+      lastEdited = "bruto";
+      actualizarDesdeBruto();
+    });
+
+    inputLiquido.addEventListener("input", () => {
+      lastEdited = "liquido";
+      actualizarDesdeLiquido();
+    });
+
+    inputBruto.addEventListener("blur", () => formatearCampo(inputBruto));
+
+    inputLiquido.addEventListener("blur", () => formatearCampo(inputLiquido));
+
+    selectAfp.addEventListener("change", () => {
+      if (lastEdited === "liquido") {
+        actualizarDesdeLiquido();
+      } else {
+        actualizarDesdeBruto();
+      }
+    });
+
+    selectDestinoAfp.addEventListener("change", () => {
+      if (lastEdited === "liquido") {
+        actualizarDesdeLiquido();
+      } else {
+        actualizarDesdeBruto();
+      }
+    });
+
+    toggleRentabilidad.addEventListener("change", () => {
+      if (lastEdited === "liquido") {
+        actualizarDesdeLiquido();
+      } else {
+        actualizarDesdeBruto();
+      }
+    });
+
+    inputRentabilidad.addEventListener("input", () => {
+      if (lastEdited === "liquido") {
+        actualizarDesdeLiquido();
+      } else {
+        actualizarDesdeBruto();
+      }
+    });
+
+    function activateTab(tab) {
+      const isShort = tab === "short";
+
+      contentShort.classList.toggle("hidden", !isShort);
+
+      contentFull.classList.toggle("hidden", isShort);
+
+      tabShort.classList.toggle("bg-white/10", isShort);
+
+      tabShort.classList.toggle("text-white", isShort);
+
+      tabShort.classList.toggle("text-slate-300", !isShort);
+
+      tabFull.classList.toggle("bg-white/10", !isShort);
+
+      tabFull.classList.toggle("text-white", !isShort);
+
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+
+    tabFull?.addEventListener("click", () => activateTab("full"));
+
+    activateTab("short");
+
+    inputBruto.value = "$ 1.500.000";
+
+    actualizarDesdeBruto();
+  });
+</script>

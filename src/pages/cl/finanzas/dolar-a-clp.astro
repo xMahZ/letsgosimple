@@ -55,15 +55,13 @@ const last7 = last7raw.slice(0, 7).map((r, i) => {
   let varText = "—";
   let varClass = "text-slate-500";
 
-  if (prev && prev.usd > 0) {
-    const varPct = ((r.usd - prev.usd) / prev.usd) * 100;
+  const varPct = ((r.usd - prev.usd) / prev.usd) * 100;
+  if (Math.abs(varPct) < 0.001) {
+    varText = "—";
+    varClass = "text-slate-600";
+  } else {
     varText = `${varPct >= 0 ? "+" : ""}${varPct.toFixed(2)}%`;
-    varClass =
-      varPct > 0
-        ? "text-green-400"
-        : varPct < 0
-          ? "text-red-400"
-          : "text-slate-500";
+    varClass = varPct > 0 ? "text-green-400" : "text-red-400";
   }
 
   return { date: `${d}-${m}-${y}`, raw: r.date, usd: r.usd, varText, varClass };

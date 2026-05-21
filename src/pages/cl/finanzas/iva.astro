@@ -1,0 +1,365 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+
+const IVA = 0.19;
+
+const montosFrecuentes = [1000, 5000, 10000, 50000, 100000, 500000, 1000000];
+---
+
+<BaseLayout
+  title="Calculadora IVA Chile 19% — Neto y Bruto al instante"
+  description="Calcula el IVA en Chile al instante. Agrega o quita el 19% a cualquier monto. Obtén el precio neto, bruto y el valor del impuesto en un solo clic."
+>
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Cuánto es el IVA en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "El IVA en Chile es del 19% y se aplica a la mayoría de los productos y servicios. Es recaudado por el SII (Servicio de Impuestos Internos)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo calcular el IVA en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Para agregar IVA a un monto neto, multiplica por 1,19. Para quitar el IVA de un precio con impuesto incluido, divide por 1,19. El IVA equivale al 19% del precio neto."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo separar el IVA de un precio con impuesto incluido?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Para obtener el precio neto desde un total con IVA, divide el total por 1,19. El IVA es la diferencia entre el total y el neto."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Calculadora de IVA Chile
+    </h1>
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      Agrega o quita el 19% de IVA a cualquier monto
+    </h2>
+
+    <!-- Calculadora -->
+    <div
+      class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5 space-y-4"
+    >
+      <p class="text-xs text-slate-500">
+        IVA vigente en Chile: <span class="text-slate-300 font-medium"
+          >19%</span>
+      </p>
+
+      <!-- Monto Neto -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1.5"
+          >Monto Neto (sin IVA)</label
+        >
+        <input
+          id="inputNeto"
+          type="number"
+          step="1"
+          placeholder="Ej: 100.000"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+        />
+      </div>
+
+      <!-- IVA (readonly) -->
+      <div>
+        <label class="block text-sm text-slate-500 mb-1.5">IVA (19%)</label>
+        <div
+          id="displayIva"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16]/60 border border-white/5 text-slate-400 text-sm select-none"
+        >
+          —
+        </div>
+      </div>
+
+      <!-- Monto Total -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1.5"
+          >Monto Total (con IVA)</label
+        >
+        <input
+          id="inputTotal"
+          type="number"
+          step="1"
+          placeholder="Ej: 119.000"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+        />
+      </div>
+
+      <!-- Botón copiar resultado -->
+      <div class="flex gap-2 pt-1">
+        <button
+          id="copyNeto"
+          class="flex-1 px-3 py-2 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-xs"
+          >Copiar neto</button
+        >
+        <button
+          id="copyTotal"
+          class="flex-1 px-3 py-2 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-xs"
+          >Copiar total</button
+        >
+      </div>
+    </div>
+
+    <!-- Tabla montos frecuentes -->
+    <section class="mt-8">
+      <h2 class="text-white font-semibold text-base mb-2">
+        Tabla IVA montos comunes
+      </h2>
+      <p class="text-slate-500 text-xs mb-3">
+        Montos frecuentes con IVA calculado al 19%.
+      </p>
+
+      <div class="rounded-xl border border-white/10 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10 bg-white/5">
+              <th class="py-2 px-4 text-left font-normal text-slate-400"
+                >Neto</th
+              >
+              <th class="py-2 px-4 text-right font-normal text-slate-400"
+                >IVA 19%</th
+              >
+              <th class="py-2 px-4 text-right font-normal text-slate-400"
+                >Total</th
+              >
+            </tr>
+          </thead>
+          <tbody>
+            {
+              montosFrecuentes.map((neto, i) => {
+                const iva = Math.round(neto * IVA);
+                const total = neto + iva;
+                return (
+                  <tr
+                    class={`border-b border-white/5 ${i === 0 ? "bg-white/5" : ""}`}
+                  >
+                    <td class="py-2 px-4 text-slate-300">
+                      $ {neto.toLocaleString("es-CL")}
+                    </td>
+                    <td class="py-2 px-4 text-right text-orange-400">
+                      $ {iva.toLocaleString("es-CL")}
+                    </td>
+                    <td class="py-2 px-4 text-right text-slate-200">
+                      $ {total.toLocaleString("es-CL")}
+                    </td>
+                  </tr>
+                );
+              })
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sr-only">
+        {
+          montosFrecuentes.map((neto) => {
+            const iva = Math.round(neto * IVA);
+            const total = neto + iva;
+            return (
+              <p>
+                IVA de ${neto.toLocaleString("es-CL")} neto: $
+                {iva.toLocaleString("es-CL")}. Total con IVA: $
+                {total.toLocaleString("es-CL")}.
+              </p>
+            );
+          })
+        }
+        <p>
+          Para calcular el IVA de $100.000 neto: $19.000 de IVA, total $119.000.
+        </p>
+        <p>Para quitar el IVA de $119.000: neto $100.000, IVA $19.000.</p>
+      </div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Qué es el IVA en Chile?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          El IVA (Impuesto al Valor Agregado) es un impuesto del 19% que se
+          aplica a la mayoría de los productos y servicios en Chile. Si algo
+          cuesta $100.000 neto, con IVA incluido vale $119.000.
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>
+          El IVA (Impuesto al Valor Agregado) es el principal impuesto al
+          consumo en Chile, equivalente al 19% del precio neto de un producto o
+          servicio. Fue establecido por el Decreto Ley N° 825 y es recaudado por
+          el SII (Servicio de Impuestos Internos).
+        </p>
+        <p class="mt-3">
+          Cuando compras con boleta, el IVA ya está incluido en el precio final.
+          Cuando recibes una factura, el documento separa el monto neto del IVA,
+          lo que permite a las empresas recuperarlo como crédito fiscal.
+        </p>
+        <p class="mt-3">
+          Para calcular el IVA de un monto neto, multiplicas por 0,19. Para
+          quitar el IVA de un precio con impuesto incluido, divides por 1,19.
+          Nuestra calculadora hace esto automáticamente.
+        </p>
+      </div>
+
+      <h2 class="text-white font-semibold text-lg mt-8 mb-2">
+        ¿Cómo calcular el IVA?
+      </h2>
+      <p>
+        Escribe el monto neto para obtener el total con IVA, o escribe el total
+        para obtener el neto. La calculadora separa automáticamente el IVA del
+        19%.
+      </p>
+
+      <div class="sr-only">
+        <p>
+          Calculadora de IVA Chile 19% que permite agregar o quitar IVA a
+          cualquier monto.
+        </p>
+        <p>
+          El IVA en Chile es del 19% sobre el precio neto, establecido por el
+          Decreto Ley 825.
+        </p>
+        <p>
+          Para facturas: el neto más el 19% de IVA da el total. Para boletas: el
+          total ya incluye el IVA.
+        </p>
+        <p>
+          Cómo calcular el neto desde el total: dividir el precio total por
+          1,19.
+        </p>
+        <p>Cómo agregar IVA al neto: multiplicar el precio neto por 1,19.</p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputNeto = document.getElementById("inputNeto");
+    const inputTotal = document.getElementById("inputTotal");
+    const displayIva = document.getElementById("displayIva");
+    const copyNeto = document.getElementById("copyNeto");
+    const copyTotal = document.getElementById("copyTotal");
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    const IVA = 0.19;
+
+    function fmt(n) {
+      return "$ " + Math.round(n).toLocaleString("es-CL");
+    }
+
+    let lastEdited = null;
+
+    function calcFromNeto() {
+      const raw = inputNeto.value.replace(",", ".");
+      const neto = parseFloat(raw);
+      if (isNaN(neto) || neto <= 0) {
+        displayIva.innerText = "—";
+        inputTotal.value = "";
+        return;
+      }
+      const iva = neto * IVA;
+      const total = neto + iva;
+      displayIva.innerText = fmt(iva);
+      inputTotal.value = Math.round(total);
+    }
+
+    function calcFromTotal() {
+      const raw = inputTotal.value.replace(",", ".");
+      const total = parseFloat(raw);
+      if (isNaN(total) || total <= 0) {
+        displayIva.innerText = "—";
+        inputNeto.value = "";
+        return;
+      }
+      const neto = total / (1 + IVA);
+      const iva = total - neto;
+      displayIva.innerText = fmt(iva);
+      inputNeto.value = Math.round(neto);
+    }
+
+    inputNeto.addEventListener("input", () => {
+      lastEdited = "neto";
+      calcFromNeto();
+    });
+
+    inputTotal.addEventListener("input", () => {
+      lastEdited = "total";
+      calcFromTotal();
+    });
+
+    async function copyText(text, btn) {
+      if (!text || text === "—") return;
+      try {
+        await navigator.clipboard.writeText(text.replace(/[^0-9]/g, ""));
+        const orig = btn.innerText;
+        btn.innerText = "Copiado ✓";
+        setTimeout(() => {
+          btn.innerText = orig;
+        }, 1200);
+      } catch (e) {}
+    }
+
+    copyNeto.addEventListener("click", () =>
+      copyText(inputNeto.value, copyNeto),
+    );
+    copyTotal.addEventListener("click", () =>
+      copyText(inputTotal.value, copyTotal),
+    );
+
+    function activateTab(tab) {
+      const isShort = tab === "short";
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+    tabFull?.addEventListener("click", () => activateTab("full"));
+    activateTab("short");
+  });
+</script>
