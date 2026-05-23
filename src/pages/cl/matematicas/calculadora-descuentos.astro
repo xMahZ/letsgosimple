@@ -1,0 +1,430 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+
+const ejemplos = [
+  {
+    precio: 49990,
+    descuento: 20,
+    label: "Televisor Cyber",
+    desc: "$49.990 con 20% de descuento",
+  },
+
+  {
+    precio: 89990,
+    descuento: 35,
+    label: "Zapatillas",
+    desc: "$89.990 con 35% de descuento",
+  },
+
+  {
+    precio: 15990,
+    descuento: 15,
+    label: "Polera",
+    desc: "$15.990 con 15% OFF",
+  },
+
+  {
+    precio: 249990,
+    descuento: 40,
+    label: "Notebook",
+    desc: "$249.990 con 40% de descuento",
+  },
+];
+---
+
+<BaseLayout
+  title="Calculadora de Descuentos — Calcula precios con descuento"
+  description="Calcula descuentos al instante. Ingresa el precio original y el porcentaje de descuento para saber cuánto pagarás y cuánto ahorrarás."
+>
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Cómo calcular un descuento?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Para calcular un descuento multiplica el precio por el porcentaje de descuento y luego réstalo del precio original."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo saber el precio final con descuento?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "El precio final se obtiene restando el monto descontado al precio original."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Calculadora de Descuentos
+    </h1>
+
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      Descubre cuánto pagarás y cuánto ahorrarás al instante
+    </h2>
+
+    <!-- Calculadora -->
+    <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Precio -->
+        <div>
+          <label class="block text-sm text-slate-300 mb-2">
+            Precio original
+          </label>
+
+          <input
+            id="inputPrecio"
+            type="text"
+            inputmode="numeric"
+            placeholder="$49.990"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-orange-400 transition"
+          />
+        </div>
+
+        <!-- Descuento -->
+        <div>
+          <label class="block text-sm text-slate-300 mb-2"> Descuento % </label>
+
+          <input
+            id="inputDescuento"
+            type="number"
+            placeholder="20"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-orange-400 transition"
+          />
+        </div>
+      </div>
+
+      <!-- Resultado -->
+      <div
+        id="resultBox"
+        class="hidden mt-6 rounded-xl border border-orange-400/20 bg-[#070b16]/80 overflow-hidden"
+      >
+        <!-- Top -->
+        <div class="p-6 border-b border-white/5">
+          <p class="text-xs uppercase tracking-widest text-orange-400/60">
+            Precio final
+          </p>
+
+          <div id="precioFinal" class="mt-2 text-4xl font-bold text-orange-400">
+            —
+          </div>
+
+          <div class="mt-3 flex items-center gap-3 flex-wrap">
+            <div
+              id="badgeDescuento"
+              class="px-2.5 py-1 rounded-md bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium"
+            >
+              -20%
+            </div>
+
+            <div
+              id="precioOriginal"
+              class="text-slate-500 line-through text-sm"
+            >
+              $49.990
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom -->
+        <div class="grid grid-cols-2 divide-x divide-white/5">
+          <div class="p-4">
+            <p class="text-xs text-slate-500 uppercase tracking-widest">
+              Ahorras
+            </p>
+
+            <p id="ahorro" class="mt-1 text-lg font-semibold text-green-400">
+              —
+            </p>
+          </div>
+
+          <div class="p-4">
+            <p class="text-xs text-slate-500 uppercase tracking-widest">
+              Descuento aplicado
+            </p>
+
+            <p
+              id="descuentoAplicado"
+              class="mt-1 text-lg font-semibold text-white"
+            >
+              —
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div
+        id="formulaBox"
+        class="hidden mt-4 p-3 rounded-lg bg-white/5 border border-white/10 text-center"
+      >
+        <p id="formulaText" class="text-sm text-slate-300 font-mono"></p>
+      </div>
+    </div>
+
+    <!-- Ejemplos -->
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">Ejemplos rápidos</h2>
+
+      <p class="text-slate-500 text-xs mb-3">
+        Haz clic para cargar un ejemplo.
+      </p>
+
+      <div id="listaEjemplos" class="space-y-2"></div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Cómo funcionan los descuentos?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          Un descuento reduce el precio original de un producto según un
+          porcentaje. Por ejemplo, un 20% de descuento significa que pagarás
+          solo el 80% del precio original.
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>
+          Los descuentos porcentuales son una de las formas más comunes de
+          rebajar precios en tiendas, ecommerce, CyberDay, Black Friday y
+          promociones.
+        </p>
+
+        <p class="mt-3">
+          Para calcular un descuento primero se obtiene cuánto representa el
+          porcentaje sobre el precio original. Luego ese monto se resta al
+          precio inicial.
+        </p>
+
+        <p class="mt-3">Ejemplo:</p>
+
+        <p class="mt-3 font-mono text-slate-200">$50.000 × 20% = $10.000</p>
+
+        <p class="mt-2 font-mono text-slate-200">$50.000 - $10.000 = $40.000</p>
+
+        <p class="mt-3">
+          Mientras mayor sea el porcentaje de descuento, mayor será el ahorro.
+        </p>
+      </div>
+
+      <h2 class="text-white font-semibold text-lg mt-8 mb-2">
+        ¿Cómo calcular descuentos?
+      </h2>
+
+      <p>
+        Ingresa el precio original y el porcentaje de descuento. La calculadora
+        mostrará automáticamente el precio final, el ahorro total y la operación
+        completa.
+      </p>
+
+      <div class="sr-only">
+        <p>Calculadora de descuentos online.</p>
+        <p>Calcula precios con descuento.</p>
+        <p>Calculadora porcentaje descuento.</p>
+        <p>Precio final con descuento.</p>
+        <p>Cuánto queda con 20% de descuento.</p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ ejemplos }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputPrecio = document.getElementById("inputPrecio");
+
+    const inputDescuento = document.getElementById("inputDescuento");
+
+    const resultBox = document.getElementById("resultBox");
+
+    const precioFinal = document.getElementById("precioFinal");
+
+    const ahorro = document.getElementById("ahorro");
+
+    const descuentoAplicado = document.getElementById("descuentoAplicado");
+
+    const badgeDescuento = document.getElementById("badgeDescuento");
+
+    const precioOriginal = document.getElementById("precioOriginal");
+
+    const formulaBox = document.getElementById("formulaBox");
+
+    const formulaText = document.getElementById("formulaText");
+
+    const listaEjemplos = document.getElementById("listaEjemplos");
+
+    const tabShort = document.getElementById("tabShort");
+
+    const tabFull = document.getElementById("tabFull");
+
+    const contentShort = document.getElementById("contentShort");
+
+    const contentFull = document.getElementById("contentFull");
+
+    function parseInput(str) {
+      return parseFloat(str.replace(/[^0-9]/g, ""));
+    }
+
+    function fmt(n) {
+      return "$ " + Math.round(n).toLocaleString("es-CL");
+    }
+
+    function fmtInput(n) {
+      return "$ " + Math.round(n).toLocaleString("es-CL");
+    }
+
+    function formatearCampo(input) {
+      const raw = parseInput(input.value);
+
+      if (!isNaN(raw) && raw > 0) {
+        input.value = fmtInput(raw);
+      }
+    }
+
+    function calc() {
+      const precio = parseInput(inputPrecio.value);
+
+      const descuento = parseFloat(inputDescuento.value);
+
+      if (isNaN(precio) || isNaN(descuento)) {
+        resultBox.classList.add("hidden");
+
+        formulaBox.classList.add("hidden");
+
+        return;
+      }
+
+      const ahorroTotal = precio * (descuento / 100);
+
+      const final = precio - ahorroTotal;
+
+      resultBox.classList.remove("hidden");
+
+      precioFinal.innerText = fmt(final);
+
+      ahorro.innerText = fmt(ahorroTotal);
+
+      descuentoAplicado.innerText = descuento + "%";
+
+      badgeDescuento.innerText = "-" + descuento + "%";
+
+      precioOriginal.innerText = fmt(precio);
+
+      formulaText.innerText = `${fmt(precio)} × ${descuento}% = ${fmt(ahorroTotal)} → ${fmt(final)}`;
+
+      formulaBox.classList.remove("hidden");
+    }
+
+    inputPrecio.addEventListener("input", calc);
+
+    inputPrecio.addEventListener("blur", () => formatearCampo(inputPrecio));
+
+    inputDescuento.addEventListener("input", calc);
+
+    function renderEjemplos() {
+      listaEjemplos.innerHTML = "";
+
+      ejemplos.forEach((ej) => {
+        const btn = document.createElement("button");
+
+        btn.type = "button";
+
+        btn.className =
+          "w-full text-left px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition";
+
+        btn.innerHTML = `
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-slate-300 font-medium">
+                ${ej.label}
+              </p>
+
+              <p class="text-xs text-slate-500 mt-0.5">
+                ${ej.desc}
+              </p>
+            </div>
+
+            <div class="text-right shrink-0">
+              <div class="text-orange-400 text-sm font-semibold">
+                -${ej.descuento}%
+              </div>
+            </div>
+          </div>
+        `;
+
+        btn.addEventListener("click", () => {
+          inputPrecio.value = fmtInput(ej.precio);
+
+          inputDescuento.value = ej.descuento;
+
+          calc();
+
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+
+        listaEjemplos.appendChild(btn);
+      });
+    }
+
+    function activateTab(tab) {
+      const isShort = tab === "short";
+
+      contentShort.classList.toggle("hidden", !isShort);
+
+      contentFull.classList.toggle("hidden", isShort);
+
+      tabShort.classList.toggle("bg-white/10", isShort);
+
+      tabShort.classList.toggle("text-white", isShort);
+
+      tabShort.classList.toggle("text-slate-300", !isShort);
+
+      tabFull.classList.toggle("bg-white/10", !isShort);
+
+      tabFull.classList.toggle("text-white", !isShort);
+
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+
+    tabFull?.addEventListener("click", () => activateTab("full"));
+
+    activateTab("short");
+
+    renderEjemplos();
+  });
+</script>
