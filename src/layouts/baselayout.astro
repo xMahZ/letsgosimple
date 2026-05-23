@@ -8,6 +8,8 @@ interface Props {
 }
 
 const { title, description = "Herramientas rápidas y simples." } = Astro.props;
+
+const canonical = `https://letsgosimple.app${Astro.url.pathname}`;
 ---
 
 <html lang="es">
@@ -22,6 +24,8 @@ const { title, description = "Herramientas rápidas y simples." } = Astro.props;
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:url" content={canonical} />
 
     <slot name="head" />
   </head>

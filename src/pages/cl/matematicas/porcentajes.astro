@@ -1,0 +1,487 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+
+const ejemplos = [
+  {
+    tipo: "whatPercent",
+    label: "Descuento",
+    total: 50000,
+    parte: 10000,
+    desc: "$10.000 es qué porcentaje de $50.000",
+  },
+
+  {
+    tipo: "percentOf",
+    label: "Propina",
+    total: 25000,
+    porcentaje: 10,
+    desc: "¿Cuánto es el 10% de $25.000?",
+  },
+
+  {
+    tipo: "change",
+    label: "Aumento de sueldo",
+    inicial: 800000,
+    final: 920000,
+    desc: "Subir de $800.000 a $920.000",
+  },
+
+  {
+    tipo: "whatPercent",
+    label: "Notas",
+    total: 70,
+    parte: 56,
+    desc: "56 de 70 puntos",
+  },
+];
+---
+
+<BaseLayout
+  title="Calculadora de Porcentajes — Calcula porcentajes al instante"
+  description="Calcula porcentajes en tiempo real. Descubre cuánto es un porcentaje, qué porcentaje representa un valor y variaciones porcentuales."
+>
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Calculadora de Porcentajes
+    </h1>
+
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      Calcula porcentajes, descuentos, aumentos y proporciones al instante
+    </h2>
+
+    <!-- Toggle -->
+    <div class="mt-6 flex gap-2 flex-wrap">
+      <button
+        id="btnPercentOf"
+        class="px-4 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-sm font-medium transition"
+        type="button"
+      >
+        % de un valor
+      </button>
+
+      <button
+        id="btnWhatPercent"
+        class="px-4 py-2 rounded-lg border border-white/10 text-slate-400 text-sm font-medium hover:bg-white/5 transition"
+        type="button"
+      >
+        Qué % representa
+      </button>
+
+      <button
+        id="btnChange"
+        class="px-4 py-2 rounded-lg border border-white/10 text-slate-400 text-sm font-medium hover:bg-white/5 transition"
+        type="button"
+      >
+        Variación %
+      </button>
+    </div>
+
+    <!-- Calculadora -->
+    <div class="mt-4 p-6 rounded-xl border border-white/10 bg-white/5">
+      <p id="tipoDesc" class="text-xs text-slate-500 mb-6">
+        Calcula cuánto es un porcentaje de un valor.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Input A -->
+        <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+          <p
+            id="labelA"
+            class="text-xs text-slate-600 mb-2 uppercase tracking-widest"
+          >
+            Porcentaje
+          </p>
+
+          <input
+            id="inputA"
+            type="number"
+            placeholder="10"
+            class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+          />
+        </div>
+
+        <!-- Input B -->
+        <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+          <p
+            id="labelB"
+            class="text-xs text-slate-600 mb-2 uppercase tracking-widest"
+          >
+            Valor
+          </p>
+
+          <input
+            id="inputB"
+            type="number"
+            placeholder="1000"
+            class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+          />
+        </div>
+
+        <!-- Resultado -->
+        <div
+          class="bg-[#070b16]/80 rounded-xl border border-orange-400/25 p-4 relative overflow-hidden"
+        >
+          <div class="absolute inset-0 bg-orange-400/5"></div>
+
+          <p
+            class="text-xs text-orange-400/60 mb-2 uppercase tracking-widest relative z-10"
+          >
+            Resultado
+          </p>
+
+          <div
+            id="resultBox"
+            class="text-2xl font-bold text-orange-400 relative z-10 min-h-[36px] flex items-center"
+          >
+            —
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div
+        id="formulaBox"
+        class="hidden mt-5 p-3 rounded-lg bg-white/5 border border-white/10 text-center"
+      >
+        <p id="formulaText" class="text-sm text-slate-300 font-mono"></p>
+      </div>
+
+      <!-- Copy -->
+      <div class="mt-4 flex justify-end">
+        <button
+          id="copyBtn"
+          class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-xs"
+        >
+          Copiar resultado
+        </button>
+      </div>
+    </div>
+
+    <!-- Ejemplos -->
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">Ejemplos rápidos</h2>
+
+      <p class="text-slate-500 text-xs mb-3">
+        Haz clic para cargar en la calculadora.
+      </p>
+
+      <div id="listaEjemplos" class="space-y-2"></div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Cómo funcionan los porcentajes?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          Un porcentaje representa una parte de un total. El 50% significa la
+          mitad, el 100% el total completo y el 200% el doble.
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>Los porcentajes sirven para expresar proporciones respecto a 100.</p>
+
+        <p class="mt-3">
+          Por ejemplo, si algo cuesta $100 y tiene un descuento de 20%,
+          significa que el descuento corresponde a $20.
+        </p>
+
+        <p class="mt-3">
+          También se usan para calcular aumentos, descuentos, propinas,
+          intereses, estadísticas y variaciones.
+        </p>
+
+        <p class="mt-3">Fórmulas comunes:</p>
+
+        <ul class="mt-3 space-y-2 text-slate-400">
+          <li>
+            • Porcentaje de un valor:
+            <span class="text-slate-200 font-mono"> (A × B) ÷ 100 </span>
+          </li>
+
+          <li>
+            • Qué porcentaje representa:
+            <span class="text-slate-200 font-mono"> (A ÷ B) × 100 </span>
+          </li>
+
+          <li>
+            • Variación porcentual:
+            <span class="text-slate-200 font-mono"> ((B - A) ÷ A) × 100 </span>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ ejemplos }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btnPercentOf = document.getElementById("btnPercentOf");
+
+    const btnWhatPercent = document.getElementById("btnWhatPercent");
+
+    const btnChange = document.getElementById("btnChange");
+
+    const inputA = document.getElementById("inputA");
+
+    const inputB = document.getElementById("inputB");
+
+    const labelA = document.getElementById("labelA");
+
+    const labelB = document.getElementById("labelB");
+
+    const resultBox = document.getElementById("resultBox");
+
+    const formulaBox = document.getElementById("formulaBox");
+
+    const formulaText = document.getElementById("formulaText");
+
+    const tipoDesc = document.getElementById("tipoDesc");
+
+    const copyBtn = document.getElementById("copyBtn");
+
+    const listaEjemplos = document.getElementById("listaEjemplos");
+
+    const tabShort = document.getElementById("tabShort");
+
+    const tabFull = document.getElementById("tabFull");
+
+    const contentShort = document.getElementById("contentShort");
+
+    const contentFull = document.getElementById("contentFull");
+
+    let tipo = "percentOf";
+    let ultimoResultado = null;
+
+    function fmt(n) {
+      if (n === null || n === undefined) return "—";
+
+      if (Math.abs(n) >= 1000) {
+        return Math.round(n).toLocaleString("es-CL");
+      }
+
+      return parseFloat(n.toFixed(2)).toLocaleString("es-CL");
+    }
+
+    function calc() {
+      const a = parseFloat(inputA.value);
+      const b = parseFloat(inputB.value);
+
+      if (isNaN(a) || isNaN(b)) {
+        resultBox.innerText = "—";
+        formulaBox.classList.add("hidden");
+        ultimoResultado = null;
+        return;
+      }
+
+      let result = 0;
+      let formula = "";
+
+      if (tipo === "percentOf") {
+        result = (a * b) / 100;
+
+        formula = `${fmt(a)}% de ${fmt(b)} = ${fmt(result)}`;
+
+        resultBox.innerText = fmt(result);
+      } else if (tipo === "whatPercent") {
+        if (b === 0) return;
+
+        result = (a / b) * 100;
+
+        formula = `${fmt(a)} ÷ ${fmt(b)} × 100 = ${fmt(result)}%`;
+
+        resultBox.innerText = fmt(result) + "%";
+      } else {
+        if (a === 0) return;
+
+        result = ((b - a) / a) * 100;
+
+        formula = `((${fmt(b)} - ${fmt(a)}) ÷ ${fmt(a)}) × 100 = ${fmt(result)}%`;
+
+        const prefix = result > 0 ? "+" : "";
+
+        resultBox.innerText = prefix + fmt(result) + "%";
+      }
+
+      ultimoResultado = result;
+
+      formulaText.innerText = formula;
+
+      formulaBox.classList.remove("hidden");
+    }
+
+    function setTipo(t) {
+      tipo = t;
+
+      const buttons = [btnPercentOf, btnWhatPercent, btnChange];
+
+      buttons.forEach((b) => {
+        b.classList.remove("bg-white/10", "text-white");
+
+        b.classList.add("text-slate-400");
+      });
+
+      const active =
+        t === "percentOf"
+          ? btnPercentOf
+          : t === "whatPercent"
+            ? btnWhatPercent
+            : btnChange;
+
+      active.classList.add("bg-white/10", "text-white");
+
+      active.classList.remove("text-slate-400");
+
+      if (t === "percentOf") {
+        labelA.innerText = "Porcentaje";
+        labelB.innerText = "Valor";
+
+        tipoDesc.innerText = "Calcula cuánto es un porcentaje de un valor.";
+      } else if (t === "whatPercent") {
+        labelA.innerText = "Parte";
+        labelB.innerText = "Total";
+
+        tipoDesc.innerText =
+          "Calcula qué porcentaje representa un valor sobre otro.";
+      } else {
+        labelA.innerText = "Valor inicial";
+        labelB.innerText = "Valor final";
+
+        tipoDesc.innerText = "Calcula el porcentaje de aumento o disminución.";
+      }
+
+      inputA.value = "";
+      inputB.value = "";
+
+      resultBox.innerText = "—";
+
+      formulaBox.classList.add("hidden");
+
+      renderEjemplos();
+    }
+
+    function renderEjemplos() {
+      listaEjemplos.innerHTML = "";
+
+      ejemplos.forEach((ej) => {
+        const btn = document.createElement("button");
+
+        btn.type = "button";
+
+        btn.className =
+          "w-full text-left px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition";
+
+        btn.innerHTML = `
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-slate-300 font-medium">
+                ${ej.label}
+              </p>
+
+              <p class="text-xs text-slate-500 mt-0.5">
+                ${ej.desc}
+              </p>
+            </div>
+          </div>
+        `;
+
+        btn.addEventListener("click", () => {
+          setTipo(ej.tipo);
+
+          if (ej.tipo === "percentOf") {
+            inputA.value = ej.porcentaje;
+            inputB.value = ej.total;
+          } else if (ej.tipo === "whatPercent") {
+            inputA.value = ej.parte;
+            inputB.value = ej.total;
+          } else if (ej.tipo === "change") {
+            inputA.value = ej.inicial;
+            inputB.value = ej.final;
+          }
+
+          calc();
+
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+
+        listaEjemplos.appendChild(btn);
+      });
+    }
+
+    [inputA, inputB].forEach((inp) => inp.addEventListener("input", calc));
+
+    btnPercentOf.addEventListener("click", () => setTipo("percentOf"));
+
+    btnWhatPercent.addEventListener("click", () => setTipo("whatPercent"));
+
+    btnChange.addEventListener("click", () => setTipo("change"));
+
+    copyBtn.addEventListener("click", async () => {
+      if (ultimoResultado === null) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(String(ultimoResultado));
+
+        copyBtn.innerText = "Copiado ✓";
+
+        setTimeout(() => {
+          copyBtn.innerText = "Copiar resultado";
+        }, 1200);
+      } catch (e) {}
+    });
+
+    function activateTab(tab) {
+      const isShort = tab === "short";
+
+      contentShort.classList.toggle("hidden", !isShort);
+
+      contentFull.classList.toggle("hidden", isShort);
+
+      tabShort.classList.toggle("bg-white/10", isShort);
+
+      tabShort.classList.toggle("text-white", isShort);
+
+      tabShort.classList.toggle("text-slate-300", !isShort);
+
+      tabFull.classList.toggle("bg-white/10", !isShort);
+
+      tabFull.classList.toggle("text-white", !isShort);
+
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+
+    tabFull?.addEventListener("click", () => activateTab("full"));
+
+    activateTab("short");
+
+    setTipo("percentOf");
+  });
+</script>
