@@ -12,13 +12,11 @@ const utm = sueldoData.utm;
 const uf = sueldoData.uf;
 
 const topeImponiblePesos = Math.round(topeImponible.uf * uf.valor);
-
 const utmValor = utm.valor;
 
 const afpsOrdenadas = [...afpData.opciones].sort(
-  (a, b) => a.comision - b.comision,
+  (a: any, b: any) => a.comision - b.comision,
 );
-
 const afpMasBarata = afpsOrdenadas[0];
 ---
 
@@ -59,23 +57,12 @@ const afpMasBarata = afpsOrdenadas[0];
         ]
       }
     </script>
-
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Comparador AFP Chile",
-        "applicationCategory": "FinanceApplication",
-        "operatingSystem": "All"
-      }
-    </script>
   </Fragment>
 
   <main class="max-w-3xl mx-auto px-4 py-12">
     <h1 class="text-3xl font-semibold tracking-tight text-white">
       Comparador de Comisiones AFP Chile
     </h1>
-
     <h2 class="mt-2 text-slate-400 font-normal text-base">
       Descubre cuánto te cobra tu AFP y cuánto podrías ahorrar
     </h2>
@@ -84,13 +71,15 @@ const afpMasBarata = afpsOrdenadas[0];
     <div
       class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5 space-y-5"
     >
-      <div class="grid md:grid-cols-3 gap-4">
-        <!-- Bruto -->
+      <p class="text-sm text-slate-400">
+        Ingresa tu sueldo <span class="text-white">bruto</span> o <span
+          class="text-white">líquido</span
+        >, luego selecciona tu AFP actual.
+      </p>
+      <div class="grid md:grid-cols-3 gap-4 mt-5">
         <div>
-          <label class="block text-sm text-slate-300 mb-1.5">
-            Sueldo bruto
-          </label>
-
+          <label class="block text-sm text-slate-300 mb-1.5">Sueldo bruto</label
+          >
           <input
             id="inputBruto"
             type="text"
@@ -99,13 +88,10 @@ const afpMasBarata = afpsOrdenadas[0];
             class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
           />
         </div>
-
-        <!-- Líquido -->
         <div>
-          <label class="block text-sm text-slate-300 mb-1.5">
-            Sueldo líquido
-          </label>
-
+          <label class="block text-sm text-slate-300 mb-1.5"
+            >Sueldo líquido</label
+          >
           <input
             id="inputLiquido"
             type="text"
@@ -114,13 +100,10 @@ const afpMasBarata = afpsOrdenadas[0];
             class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
           />
         </div>
-
-        <!-- AFP -->
         <div>
-          <label class="block text-sm text-slate-300 mb-1.5">
-            Tu AFP actual
-          </label>
-
+          <label class="block text-sm text-slate-300 mb-1.5"
+            >Tu AFP actual</label
+          >
           <select
             id="selectAfp"
             class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition appearance-none"
@@ -135,7 +118,6 @@ const afpMasBarata = afpsOrdenadas[0];
           </select>
         </div>
       </div>
-
       <p id="topeAviso" class="hidden text-xs text-amber-400/80">
         ⚠️ Tu sueldo supera el tope imponible de 90 UF. Las comisiones AFP se
         calculan solo hasta ese límite.
@@ -147,26 +129,18 @@ const afpMasBarata = afpsOrdenadas[0];
       <h2 class="text-white font-semibold text-lg mb-4">
         Comparación de comisiones AFP
       </h2>
-
       <div id="afpList" class="space-y-3"></div>
     </section>
 
-    <!-- Proyección -->
+    <!-- Proyección AFP destino -->
     <section class="mt-8 rounded-xl border border-white/10 bg-white/5 p-6">
-      <div class="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h2 class="text-white font-semibold text-lg">Proyección</h2>
+      <h2 class="text-white font-semibold text-lg">Proyección de ahorro</h2>
+      <p id="projectionContext" class="text-xs text-slate-500 mt-1">
+        Selecciona una AFP destino para comparar
+      </p>
 
-          <p id="projectionContext" class="text-xs text-slate-500 mt-1">
-            Comparando AFP actual con AFP destino
-          </p>
-        </div>
-      </div>
-
-      <!-- AFP destino -->
       <div class="mt-5">
-        <label class="block text-sm text-slate-300 mb-1.5"> Cambiarme a </label>
-
+        <label class="block text-sm text-slate-300 mb-1.5">Cambiarme a</label>
         <select
           id="selectDestinoAfp"
           class="w-full md:max-w-[280px] px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition appearance-none"
@@ -184,73 +158,102 @@ const afpMasBarata = afpsOrdenadas[0];
         </select>
       </div>
 
-      <!-- Toggle -->
-      <div class="mt-5">
-        <label
-          class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"
-        >
-          <input
-            id="toggleRentabilidad"
-            type="checkbox"
-            checked
-            class="accent-blue-500"
-          />
-
-          <span> Incluir rentabilidad histórica referencial </span>
-        </label>
-      </div>
-
-      <!-- Rentabilidad -->
-      <div id="rentabilidadBox" class="mt-5">
-        <label class="block text-sm text-slate-300 mb-1.5">
-          Rentabilidad anual referencial
-        </label>
-
-        <div class="relative max-w-[220px]">
-          <input
-            id="inputRentabilidad"
-            type="number"
-            step="0.01"
-            value="5.29"
-            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
-          />
-
-          <span
-            class="absolute right-10 top-1/2 -translate-y-1/2 text-slate-500 text-sm"
-          >
-            %
-          </span>
+      <!-- Ahorro simple -->
+      <div
+        class="mt-6 rounded-lg border border-white/10 bg-[#070b16]/60 divide-y divide-white/5 text-sm"
+      >
+        <div class="flex justify-between px-4 py-3">
+          <span id="mensualLabel" class="text-slate-400">Ahorro mensual</span>
+          <span id="pMensual" class="font-semibold text-slate-300">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3">
+          <span class="text-slate-400">En 1 año</span>
+          <span id="p1" class="text-slate-200">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3">
+          <span class="text-slate-400">En 10 años</span>
+          <span id="p10" class="text-slate-200">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3">
+          <span class="text-slate-400">En 20 años</span>
+          <span id="p20" class="text-white font-semibold">—</span>
         </div>
       </div>
-
-      <!-- Resultados -->
-      <div class="mt-6 space-y-3">
-        <div class="flex justify-between items-center">
-          <span id="mensualLabel" class="text-slate-400">
-            Ahorro mensual estimado
-          </span>
-
-          <span id="pMensual" class="font-semibold"> — </span>
-        </div>
-
-        <div class="flex justify-between items-center">
-          <span class="text-slate-400"> Proyección en 10 años </span>
-
-          <span id="p10" class="text-white font-semibold"> — </span>
-        </div>
-
-        <div class="flex justify-between items-center">
-          <span class="text-slate-400"> Proyección en 20 años </span>
-
-          <span id="p20" class="text-white font-semibold"> — </span>
-        </div>
-      </div>
-
-      <p class="mt-5 text-xs text-slate-500 leading-relaxed">
-        Tasa referencial histórica promedio del sistema AFP en Chile. Fuente:
-        estudio académico basado en datos de la Superintendencia de Pensiones.
-        No garantiza rentabilidad futura.
+      <p class="mt-2 text-xs text-slate-600">
+        Sin supuestos de inversión. Solo el ahorro acumulado en comisiones.
       </p>
+
+      <!-- Sección colapsable: ¿Y si invirtieras ese ahorro? -->
+      <div id="seccionInversion" class="mt-6 border-t border-white/10 pt-5">
+        <button
+          id="toggleInversion"
+          type="button"
+          class="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition w-full text-left"
+        >
+          <svg
+            id="chevronInversion"
+            class="w-4 h-4 transition-transform duration-200"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 5l7 7-7 7"></path>
+          </svg>
+          ¿Y si invirtieras ese ahorro mensual?
+        </button>
+
+        <div id="inversionBox" class="hidden mt-5 space-y-4">
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Si destinases el ahorro mensual en comisiones a una inversión con
+            esta tasa anual, tendrías:
+          </p>
+
+          <div>
+            <label class="block text-sm text-slate-300 mb-1.5"
+              >Tasa anual de inversión</label
+            >
+            <div class="relative max-w-[180px]">
+              <input
+                id="inputTasa"
+                type="number"
+                step="0.1"
+                value="4"
+                class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 transition"
+              />
+              <span
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"
+                >%</span
+              >
+            </div>
+            <p class="mt-1 text-xs text-slate-600">
+              Ref: depósito a plazo ~4%, APV renta variable ~7–10%
+            </p>
+          </div>
+
+          <div
+            class="rounded-lg border border-white/10 bg-[#070b16]/60 divide-y divide-white/5 text-sm"
+          >
+            <div class="flex justify-between px-4 py-3">
+              <span class="text-slate-400">En 10 años</span>
+              <span id="inv10" class="text-emerald-400 font-semibold">—</span>
+            </div>
+            <div class="flex justify-between px-4 py-3">
+              <span class="text-slate-400">En 20 años</span>
+              <span id="inv20" class="text-emerald-400 font-semibold">—</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Asume que inviertes activamente ese monto cada mes a la tasa
+            indicada. No representa rentabilidad de ninguna AFP ni garantiza
+            resultados futuros.
+          </p>
+        </div>
+      </div>
     </section>
 
     <!-- Explicación -->
@@ -267,7 +270,6 @@ const afpMasBarata = afpsOrdenadas[0];
         >
           En pocas palabras
         </button>
-
         <button
           id="tabFull"
           class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
@@ -293,19 +295,16 @@ const afpMasBarata = afpsOrdenadas[0];
           diferencia entre ellas es la comisión que cobran mensualmente sobre tu
           sueldo imponible.
         </p>
-
         <p class="mt-3">
           Esta comisión se descuenta directo de tu sueldo antes de que llegue a
           tu cuenta de ahorro. A eso se suma el 10% de cotización obligatoria
           que sí va a tu cuenta.
         </p>
-
         <p class="mt-3">
           Los descuentos se calculan sobre el sueldo imponible hasta un tope de
           90 UF mensual. Cambiar a una AFP más barata no afecta tu ahorro
           acumulado ni tus fondos — solo reduces el costo mensual.
         </p>
-
         <p class="mt-3">
           Para comparar cuánto pagas hoy y cuánto podrías ahorrar, ingresa tu
           sueldo arriba y selecciona tu AFP actual.
@@ -328,43 +327,32 @@ const afpMasBarata = afpsOrdenadas[0];
 >
   document.addEventListener("DOMContentLoaded", () => {
     const inputBruto = document.getElementById("inputBruto");
-
     const inputLiquido = document.getElementById("inputLiquido");
-
     const selectAfp = document.getElementById("selectAfp");
-
     const selectDestinoAfp = document.getElementById("selectDestinoAfp");
-
     const afpList = document.getElementById("afpList");
-
     const pMensual = document.getElementById("pMensual");
-
-    const p10 = document.getElementById("p10");
-
-    const p20 = document.getElementById("p20");
-
     const mensualLabel = document.getElementById("mensualLabel");
-
+    const p1 = document.getElementById("p1");
+    const p10 = document.getElementById("p10");
+    const p20 = document.getElementById("p20");
+    const inv10 = document.getElementById("inv10");
+    const inv20 = document.getElementById("inv20");
     const projectionContext = document.getElementById("projectionContext");
-
-    const toggleRentabilidad = document.getElementById("toggleRentabilidad");
-
-    const rentabilidadBox = document.getElementById("rentabilidadBox");
-
-    const inputRentabilidad = document.getElementById("inputRentabilidad");
-
     const topeAviso = document.getElementById("topeAviso");
-
+    const toggleInversion = document.getElementById("toggleInversion");
+    const chevronInversion = document.getElementById("chevronInversion");
+    const inversionBox = document.getElementById("inversionBox");
+    const inputTasa = document.getElementById("inputTasa");
     const tabShort = document.getElementById("tabShort");
-
     const tabFull = document.getElementById("tabFull");
-
     const contentShort = document.getElementById("contentShort");
-
     const contentFull = document.getElementById("contentFull");
 
     let lastEdited = "bruto";
+    let inversionAbierta = false;
 
+    // --- Formato ---
     function fmt(n) {
       return "$ " + Math.round(n).toLocaleString("es-CL");
     }
@@ -379,26 +367,21 @@ const afpMasBarata = afpsOrdenadas[0];
 
     function formatearCampo(input) {
       const raw = parseInput(input.value);
-
       if (!isNaN(raw) && raw > 0) {
         input.value = fmtInput(raw);
-
         input.setSelectionRange(input.value.length, input.value.length);
       }
     }
 
+    // --- Cálculo ---
     function getComision() {
-      const nombre = selectAfp.value;
-
-      return afpsOrdenadas.find((a) => a.nombre === nombre).comision;
+      return afpsOrdenadas.find((a) => a.nombre === selectAfp.value).comision;
     }
 
     function calcImpuesto(baseImponible) {
       const baseUtm = baseImponible / utmValor;
-
       for (const t of tramos) {
         const max = t.hasta === null ? Infinity : t.hasta;
-
         if (baseUtm <= max) {
           return Math.max(
             0,
@@ -406,344 +389,229 @@ const afpMasBarata = afpsOrdenadas[0];
           );
         }
       }
-
       return 0;
     }
 
     function brutoToLiquido(bruto) {
       const base = Math.min(bruto, topeImponiblePesos);
-
       const comision = getComision();
-
       const afp = Math.round(base * (descuentosFijos.cotizacionAfp + comision));
-
       const salud = Math.round(base * descuentosFijos.salud);
-
       const cesantia = Math.round(base * descuentosFijos.cesantia);
-
       const baseImp = bruto - afp - salud - cesantia;
-
       const impuesto = calcImpuesto(baseImp);
-
       const total = afp + salud + cesantia + impuesto;
-
-      return {
-        liquido: bruto - total,
-      };
+      return { liquido: bruto - total };
     }
 
     function liquidoToBruto(liquidoTarget) {
-      let lo = liquidoTarget;
-
-      let hi = liquidoTarget * 2;
-
+      let lo = liquidoTarget,
+        hi = liquidoTarget * 2;
       for (let i = 0; i < 60; i++) {
         const mid = Math.round((lo + hi) / 2);
-
         const { liquido } = brutoToLiquido(mid);
-
-        if (Math.abs(liquido - liquidoTarget) <= 1) {
-          return mid;
-        }
-
-        if (liquido < liquidoTarget) {
-          lo = mid;
-        } else {
-          hi = mid;
-        }
+        if (Math.abs(liquido - liquidoTarget) <= 1) return mid;
+        if (liquido < liquidoTarget) lo = mid;
+        else hi = mid;
       }
-
       return Math.round((lo + hi) / 2);
     }
 
     function calcularCosto(bruto, comision) {
-      const imponible = Math.min(bruto, topeImponiblePesos);
-
-      return Math.round(imponible * comision);
-    }
-
-    function proyectarSimple(mensual, años) {
-      return mensual * años * 12;
+      return Math.round(Math.min(bruto, topeImponiblePesos) * comision);
     }
 
     function proyectarCompuesto(mensual, tasaAnual, años) {
       const r = tasaAnual / 100 / 12;
-
       const n = años * 12;
-
-      if (r <= 0) {
-        return proyectarSimple(mensual, años);
-      }
-
+      if (r <= 0) return mensual * n;
       return mensual * (((1 + r) ** n - 1) / r);
     }
 
+    // --- Actualizar comparador ---
     function actualizarComparador(bruto) {
       const afpActualNombre = selectAfp.value;
-
       const afpActual = afpsOrdenadas.find((a) => a.nombre === afpActualNombre);
-
       const costoActual = calcularCosto(bruto, afpActual.comision);
 
+      // Lista AFP
       afpList.innerHTML = "";
-
       afpsOrdenadas.forEach((afp) => {
         const costo = calcularCosto(bruto, afp.comision);
-
         const diferencia = costo - costoActual;
-
         const isCurrent = afp.nombre === afpActualNombre;
-
         const isCheapest = afp.nombre === afpMasBarata.nombre;
 
+        let estadoHtml = "";
+        if (diferencia < 0)
+          estadoHtml = `<span class="text-emerald-400 text-sm font-medium">Ahorras ${fmt(Math.abs(diferencia))} al mes</span>`;
+        else if (diferencia > 0)
+          estadoHtml = `<span class="text-red-400 text-sm font-medium">Pagas ${fmt(diferencia)} más al mes</span>`;
+        else
+          estadoHtml = `<span class="text-slate-500 text-sm">Tu AFP actual</span>`;
+
         const row = document.createElement("div");
-
-        row.className = "rounded-xl border p-4 transition";
-
-        if (isCurrent) {
-          row.className += " border-blue-500/40 bg-blue-500/10";
-        } else {
-          row.className += " border-white/10 bg-white/5";
-        }
-
-        let estado = "";
-
-        if (diferencia < 0) {
-          estado = `
-            <span class="text-emerald-400 text-sm font-medium">
-              Ahorras ${fmt(Math.abs(diferencia))} al mes
-            </span>
-          `;
-        }
-
-        if (diferencia > 0) {
-          estado = `
-            <span class="text-red-400 text-sm font-medium">
-              Pagas ${fmt(diferencia)} más al mes
-            </span>
-          `;
-        }
-
-        if (diferencia === 0) {
-          estado = `
-            <span class="text-slate-500 text-sm">
-              Tu AFP actual
-            </span>
-          `;
-        }
-
+        row.className = `rounded-xl border p-4 transition ${isCurrent ? "border-blue-500/40 bg-blue-500/10" : "border-white/10 bg-white/5"}`;
         row.innerHTML = `
           <div class="flex items-start justify-between gap-4">
             <div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-white font-medium">
-                  ${afp.nombre}
-                </span>
-
-                ${
-                  isCurrent
-                    ? `
-                  <span class="text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/20">
-                    TU AFP
-                  </span>
-                `
-                    : ""
-                }
-
-                ${
-                  isCheapest
-                    ? `
-                  <span class="text-[10px] px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/20">
-                    MÁS BARATA
-                  </span>
-                `
-                    : ""
-                }
+                <span class="text-white font-medium">${afp.nombre}</span>
+                ${isCurrent ? `<span class="text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/20">TU AFP</span>` : ""}
+                ${isCheapest ? `<span class="text-[10px] px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/20">MÁS BARATA</span>` : ""}
               </div>
-
-              <div class="mt-1 text-slate-400 text-sm">
-                Comisión ${(afp.comision * 100).toFixed(2)}%
-              </div>
+              <div class="mt-1 text-slate-400 text-sm">Comisión ${(afp.comision * 100).toFixed(2)}%</div>
             </div>
-
             <div class="text-right">
-              <div class="text-white font-semibold">
-                ${fmt(costo)}
-              </div>
-
-              <div class="mt-1">
-                ${estado}
-              </div>
+              <div class="text-white font-semibold">${fmt(costo)}</div>
+              <div class="mt-1">${estadoHtml}</div>
             </div>
-          </div>
-        `;
-
+          </div>`;
         afpList.appendChild(row);
       });
 
+      // Proyección simple
       const afpDestino = afpsOrdenadas.find(
         (a) => a.nombre === selectDestinoAfp.value,
       );
-
       const costoDestino = calcularCosto(bruto, afpDestino.comision);
-
       const diferenciaMensual = costoActual - costoDestino;
-
-      const usarRentabilidad = toggleRentabilidad.checked;
-
-      const tasa = parseFloat(inputRentabilidad.value) || 0;
-
-      let proy10 = 0;
-      let proy20 = 0;
-
-      if (usarRentabilidad) {
-        proy10 = proyectarCompuesto(Math.abs(diferenciaMensual), tasa, 10);
-
-        proy20 = proyectarCompuesto(Math.abs(diferenciaMensual), tasa, 20);
-      } else {
-        proy10 = proyectarSimple(Math.abs(diferenciaMensual), 10);
-
-        proy20 = proyectarSimple(Math.abs(diferenciaMensual), 20);
-      }
 
       projectionContext.innerText = `Comparando ${afpActual.nombre} con ${afpDestino.nombre}`;
 
       if (diferenciaMensual > 0) {
-        mensualLabel.innerText = "Ahorro mensual estimado";
-
+        mensualLabel.innerText = "Ahorro mensual en comisión";
         pMensual.className = "text-emerald-400 font-semibold";
-
         pMensual.innerText = fmt(diferenciaMensual);
       } else if (diferenciaMensual < 0) {
         mensualLabel.innerText = "Costo adicional mensual";
-
         pMensual.className = "text-red-400 font-semibold";
-
         pMensual.innerText = fmt(Math.abs(diferenciaMensual));
       } else {
         mensualLabel.innerText = "Diferencia mensual";
-
         pMensual.className = "text-slate-400 font-semibold";
-
         pMensual.innerText = "$ 0";
       }
 
-      p10.innerText = fmt(proy10);
-      p20.innerText = fmt(proy20);
+      const absMensual = Math.abs(diferenciaMensual);
+      p1.innerText = fmt(absMensual * 12);
+      p10.innerText = fmt(absMensual * 12 * 10);
+      p20.innerText = fmt(absMensual * 12 * 20);
 
-      rentabilidadBox.classList.toggle("hidden", !usarRentabilidad);
+      // Sección inversión: solo visible si hay ahorro real
+      const hayAhorro = diferenciaMensual > 0;
+      const seccionInversion = document.getElementById("seccionInversion");
+      seccionInversion.classList.toggle("hidden", !hayAhorro);
+
+      // Si no hay ahorro y estaba abierta, cerrarla
+      if (!hayAhorro && inversionAbierta) {
+        inversionAbierta = false;
+        inversionBox.classList.add("hidden");
+        chevronInversion.style.transform = "rotate(0deg)";
+      }
+
+      // Proyección con inversión
+      actualizarInversion(absMensual);
+
+      topeAviso.classList.toggle("hidden", bruto <= topeImponiblePesos);
     }
 
+    function actualizarInversion(absMensual) {
+      const tasa = parseFloat(inputTasa.value) || 0;
+      inv10.innerText = fmt(proyectarCompuesto(absMensual, tasa, 10));
+      inv20.innerText = fmt(proyectarCompuesto(absMensual, tasa, 20));
+    }
+
+    // --- Bidireccional ---
     function actualizarDesdeBruto() {
       const bruto = parseInput(inputBruto.value);
-
       if (isNaN(bruto) || bruto <= 0) {
         inputLiquido.value = "";
         afpList.innerHTML = "";
         return;
       }
-
-      const r = brutoToLiquido(bruto);
-
-      inputLiquido.value = fmtInput(r.liquido);
-
+      const { liquido } = brutoToLiquido(bruto);
+      inputLiquido.value = fmtInput(liquido);
       actualizarComparador(bruto);
-
-      topeAviso.classList.toggle("hidden", bruto <= topeImponiblePesos);
     }
 
     function actualizarDesdeLiquido() {
       const liquido = parseInput(inputLiquido.value);
-
       if (isNaN(liquido) || liquido <= 0) {
         inputBruto.value = "";
         afpList.innerHTML = "";
         return;
       }
-
       const bruto = liquidoToBruto(liquido);
-
       inputBruto.value = fmtInput(bruto);
-
       actualizarComparador(bruto);
-
-      topeAviso.classList.toggle("hidden", bruto <= topeImponiblePesos);
     }
 
+    // --- Listeners ---
     inputBruto.addEventListener("input", () => {
       lastEdited = "bruto";
       actualizarDesdeBruto();
     });
-
     inputLiquido.addEventListener("input", () => {
       lastEdited = "liquido";
       actualizarDesdeLiquido();
     });
-
     inputBruto.addEventListener("blur", () => formatearCampo(inputBruto));
-
     inputLiquido.addEventListener("blur", () => formatearCampo(inputLiquido));
 
-    selectAfp.addEventListener("change", () => {
-      if (lastEdited === "liquido") {
-        actualizarDesdeLiquido();
-      } else {
-        actualizarDesdeBruto();
+    [selectAfp, selectDestinoAfp].forEach((sel) => {
+      sel.addEventListener("change", () => {
+        lastEdited === "liquido"
+          ? actualizarDesdeLiquido()
+          : actualizarDesdeBruto();
+      });
+    });
+
+    inputTasa.addEventListener("input", () => {
+      const bruto = parseInput(inputBruto.value);
+      if (!isNaN(bruto) && bruto > 0) {
+        const afpActual = afpsOrdenadas.find(
+          (a) => a.nombre === selectAfp.value,
+        );
+        const afpDestino = afpsOrdenadas.find(
+          (a) => a.nombre === selectDestinoAfp.value,
+        );
+        const diff = Math.abs(
+          calcularCosto(bruto, afpActual.comision) -
+            calcularCosto(bruto, afpDestino.comision),
+        );
+        actualizarInversion(diff);
       }
     });
 
-    selectDestinoAfp.addEventListener("change", () => {
-      if (lastEdited === "liquido") {
-        actualizarDesdeLiquido();
-      } else {
-        actualizarDesdeBruto();
-      }
+    // Toggle inversión colapsable
+    toggleInversion.addEventListener("click", () => {
+      inversionAbierta = !inversionAbierta;
+      inversionBox.classList.toggle("hidden", !inversionAbierta);
+      chevronInversion.style.transform = inversionAbierta
+        ? "rotate(90deg)"
+        : "rotate(0deg)";
     });
 
-    toggleRentabilidad.addEventListener("change", () => {
-      if (lastEdited === "liquido") {
-        actualizarDesdeLiquido();
-      } else {
-        actualizarDesdeBruto();
-      }
-    });
-
-    inputRentabilidad.addEventListener("input", () => {
-      if (lastEdited === "liquido") {
-        actualizarDesdeLiquido();
-      } else {
-        actualizarDesdeBruto();
-      }
-    });
-
+    // --- Tabs ---
     function activateTab(tab) {
       const isShort = tab === "short";
-
       contentShort.classList.toggle("hidden", !isShort);
-
       contentFull.classList.toggle("hidden", isShort);
-
       tabShort.classList.toggle("bg-white/10", isShort);
-
       tabShort.classList.toggle("text-white", isShort);
-
       tabShort.classList.toggle("text-slate-300", !isShort);
-
       tabFull.classList.toggle("bg-white/10", !isShort);
-
       tabFull.classList.toggle("text-white", !isShort);
-
       tabFull.classList.toggle("text-slate-300", isShort);
     }
 
     tabShort?.addEventListener("click", () => activateTab("short"));
-
     tabFull?.addEventListener("click", () => activateTab("full"));
-
     activateTab("short");
 
+    // Init
     inputBruto.value = "$ 1.500.000";
-
     actualizarDesdeBruto();
   });
 </script>

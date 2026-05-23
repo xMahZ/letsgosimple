@@ -1,0 +1,501 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+
+const ejemplosDirecta = [
+  {
+    label: "Precio por cantidad",
+    a: 5,
+    b: 1000,
+    c: 8,
+    desc: "Si 5 unidades cuestan $1.000, ¿cuánto cuestan 8?",
+  },
+  {
+    label: "Receta de cocina",
+    a: 4,
+    b: 200,
+    c: 6,
+    desc: "Si para 4 personas necesitas 200g, ¿cuánto para 6?",
+  },
+  {
+    label: "Distancia y tiempo",
+    a: 3,
+    b: 240,
+    c: 5,
+    desc: "Si en 3 horas recorres 240 km, ¿cuánto en 5 horas?",
+  },
+  {
+    label: "Descuento",
+    a: 100,
+    b: 15000,
+    c: 80,
+    desc: "Si el 100% es $15.000, ¿cuánto es el 80%?",
+  },
+];
+
+const ejemplosInversa = [
+  {
+    label: "Personas y tiempo",
+    a: 4,
+    b: 6,
+    c: 3,
+    desc: "Si 4 personas tardan 6 días, ¿cuánto tardan 3?",
+  },
+  {
+    label: "Velocidad y tiempo",
+    a: 60,
+    b: 4,
+    c: 80,
+    desc: "Si a 60 km/h tardas 4 horas, ¿cuánto a 80 km/h?",
+  },
+  {
+    label: "Máquinas y producción",
+    a: 3,
+    b: 12,
+    c: 6,
+    desc: "Si 3 máquinas tardan 12 horas, ¿cuánto tardan 6?",
+  },
+];
+---
+
+<BaseLayout
+  title="Calculadora Regla de Tres Simple — Directa e Inversa"
+  description="Calcula la regla de tres simple al instante. Directa e inversa. Ingresa tres valores y obtén el cuarto. Con ejemplos y explicación."
+>
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Qué es la regla de tres simple?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La regla de tres simple es un método para encontrar un valor desconocido cuando se conocen tres valores relacionados proporcionalmente. Si A es a B como C es a X, entonces X = (B × C) / A."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cuál es la diferencia entre regla de tres directa e inversa?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "En la regla de tres directa, cuando una cantidad aumenta la otra también aumenta. En la inversa, cuando una cantidad aumenta la otra disminuye."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo se calcula la regla de tres?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Para la regla de tres directa: X = (B × C) / A. Para la inversa: X = (A × B) / C."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Regla de Tres Simple
+    </h1>
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      Directa e inversa — calcula el valor desconocido al instante
+    </h2>
+
+    <!-- Toggle tipo -->
+    <div class="mt-6 flex gap-2">
+      <button
+        id="btnDirecta"
+        class="px-4 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-sm font-medium transition"
+        type="button"
+      >
+        Directa
+      </button>
+      <button
+        id="btnInversa"
+        class="px-4 py-2 rounded-lg border border-white/10 text-slate-400 text-sm font-medium hover:bg-white/5 transition"
+        type="button"
+      >
+        Inversa
+      </button>
+    </div>
+
+    <!-- Calculadora -->
+    <div class="mt-4 p-6 rounded-xl border border-white/10 bg-white/5">
+      <p id="tipoDesc" class="text-xs text-slate-500 mb-6">
+        <span class="text-slate-400 font-medium">Directa:</span> cuando una cantidad
+        aumenta, la otra también aumenta.
+      </p>
+
+      <!-- Visual C + A: cuadro "Si... ¿Y...?" con cruz diagonal -->
+      <div class="relative">
+        <!-- Cruz diagonal decorativa -->
+        <svg
+          class="absolute inset-0 w-full h-full pointer-events-none"
+          preserveAspectRatio="none"
+        >
+          <line
+            x1="50%"
+            y1="0%"
+            x2="50%"
+            y2="100%"
+            stroke="rgba(255,255,255,0.06)"
+            stroke-width="1"
+            stroke-dasharray="4 4"></line>
+          <line
+            x1="0%"
+            y1="50%"
+            x2="100%"
+            y2="50%"
+            stroke="rgba(255,255,255,0.06)"
+            stroke-width="1"
+            stroke-dasharray="4 4"></line>
+          <!-- Cruz diagonal -->
+          <line
+            x1="15%"
+            y1="20%"
+            x2="85%"
+            y2="80%"
+            stroke="rgba(251,146,60,0.12)"
+            stroke-width="1.5"></line>
+          <line
+            x1="85%"
+            y1="20%"
+            x2="15%"
+            y2="80%"
+            stroke="rgba(251,146,60,0.12)"
+            stroke-width="1.5"></line>
+        </svg>
+
+        <!-- Grid 2x2 -->
+        <div class="grid grid-cols-2 gap-3 relative z-10">
+          <!-- Si A → -->
+          <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+            <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+              Si A
+            </p>
+            <input
+              id="inputA"
+              type="number"
+              placeholder="?"
+              class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+            />
+          </div>
+
+          <!-- → B -->
+          <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+            <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+              → B
+            </p>
+            <input
+              id="inputB"
+              type="number"
+              placeholder="?"
+              class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+            />
+          </div>
+
+          <!-- ¿Y C → -->
+          <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+            <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+              ¿Y C
+            </p>
+            <input
+              id="inputC"
+              type="number"
+              placeholder="?"
+              class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+            />
+          </div>
+
+          <!-- → X (resultado) -->
+          <div
+            class="bg-[#070b16]/80 rounded-xl border border-orange-400/25 p-4 relative overflow-hidden"
+          >
+            <!-- Glow sutil -->
+            <div class="absolute inset-0 bg-orange-400/5 pointer-events-none">
+            </div>
+            <p
+              class="text-xs text-orange-400/60 mb-2 uppercase tracking-widest relative z-10"
+            >
+              → X ?
+            </p>
+            <div
+              id="resultBox"
+              class="text-2xl font-bold text-orange-400 relative z-10 min-h-[36px] flex items-center"
+            >
+              —
+            </div>
+          </div>
+        </div>
+
+        <!-- Flechas horizontales entre columnas -->
+        <div
+          class="absolute left-1/2 top-[30%] -translate-x-1/2 -translate-y-1/2 z-20"
+        >
+          <span class="text-slate-700 text-lg">→</span>
+        </div>
+        <div
+          class="absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2 z-20"
+        >
+          <span id="arrowBottom" class="text-orange-400/50 text-lg">→</span>
+        </div>
+      </div>
+
+      <!-- Fórmula en vivo -->
+      <div
+        id="formulaBox"
+        class="hidden mt-5 p-3 rounded-lg bg-white/5 border border-white/10 text-center"
+      >
+        <p id="formulaText" class="text-sm text-slate-300 font-mono"></p>
+      </div>
+
+      <!-- Copiar -->
+      <div class="mt-4 flex justify-end">
+        <button
+          id="copyBtn"
+          class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-xs"
+        >
+          Copiar resultado
+        </button>
+      </div>
+    </div>
+
+    <!-- Ejemplos rápidos -->
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">Ejemplos rápidos</h2>
+      <p class="text-slate-500 text-xs mb-3">
+        Haz clic para cargar en la calculadora.
+      </p>
+      <div id="listaEjemplos" class="space-y-2"></div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Qué es la regla de tres?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          La regla de tres sirve para encontrar un valor desconocido cuando
+          conoces tres valores relacionados. Si sabes que 5 manzanas cuestan
+          $1.000, puedes calcular cuánto cuestan 8 usando la regla de tres
+          directa.
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>
+          La regla de tres simple es un método matemático para resolver
+          proporciones cuando se conocen tres de los cuatro valores
+          involucrados.
+        </p>
+        <p class="mt-3">
+          En la <strong class="text-slate-200">regla de tres directa</strong>,
+          las dos magnitudes son proporcionales: si una aumenta, la otra también
+          aumenta en la misma proporción. La fórmula es <span
+            class="font-mono text-slate-200">X = (B × C) / A</span
+          >.
+        </p>
+        <p class="mt-3">
+          En la <strong class="text-slate-200">regla de tres inversa</strong>,
+          las magnitudes son inversamente proporcionales: si una aumenta, la
+          otra disminuye. La fórmula es <span class="font-mono text-slate-200"
+            >X = (A × B) / C</span
+          >.
+        </p>
+        <p class="mt-3">
+          El truco para saber cuál usar: si duplicas C y el resultado debería
+          duplicarse, es directa. Si duplicas C y el resultado debería reducirse
+          a la mitad, es inversa.
+        </p>
+      </div>
+
+      <h2 class="text-white font-semibold text-lg mt-8 mb-2">
+        ¿Cómo se calcula?
+      </h2>
+      <p>
+        Ingresa los tres valores conocidos (A, B y C) y la calculadora obtiene X
+        automáticamente, mostrando la operación completa.
+      </p>
+
+      <div class="sr-only">
+        <p>Calculadora de regla de tres simple directa e inversa.</p>
+        <p>Fórmula regla de tres directa: X = (B × C) / A.</p>
+        <p>Fórmula regla de tres inversa: X = (A × B) / C.</p>
+        <p>Si 3 es a 9 como 5 es a X, entonces X = (9 × 5) / 3 = 15.</p>
+        <p>
+          Si 4 personas tardan 6 días, 3 personas tardan (4 × 6) / 3 = 8 días.
+        </p>
+        <p>
+          Ejemplos: precios, recetas, distancias, velocidades, personas y tiempo
+          de trabajo.
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ ejemplosDirecta, ejemplosInversa }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btnDirecta = document.getElementById("btnDirecta");
+    const btnInversa = document.getElementById("btnInversa");
+    const tipoDesc = document.getElementById("tipoDesc");
+    const inputA = document.getElementById("inputA");
+    const inputB = document.getElementById("inputB");
+    const inputC = document.getElementById("inputC");
+    const resultBox = document.getElementById("resultBox");
+    const formulaBox = document.getElementById("formulaBox");
+    const formulaText = document.getElementById("formulaText");
+    const copyBtn = document.getElementById("copyBtn");
+    const listaEjemplos = document.getElementById("listaEjemplos");
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    let tipo = "directa";
+    let ultimoResultado = null;
+
+    function fmt(n) {
+      if (n === null || n === undefined) return "—";
+      if (Number.isInteger(n)) return n.toLocaleString("es-CL");
+      return parseFloat(n.toFixed(4)).toLocaleString("es-CL");
+    }
+
+    function calc() {
+      const a = parseFloat(inputA.value);
+      const b = parseFloat(inputB.value);
+      const c = parseFloat(inputC.value);
+
+      if (isNaN(a) || isNaN(b) || isNaN(c) || a === 0 || c === 0) {
+        resultBox.innerText = "—";
+        formulaBox.classList.add("hidden");
+        ultimoResultado = null;
+        return;
+      }
+
+      let x, formula;
+
+      if (tipo === "directa") {
+        x = (b * c) / a;
+        formula = `X = (${fmt(b)} × ${fmt(c)}) ÷ ${fmt(a)} = ${fmt(x)}`;
+      } else {
+        x = (a * b) / c;
+        formula = `X = (${fmt(a)} × ${fmt(b)}) ÷ ${fmt(c)} = ${fmt(x)}`;
+      }
+
+      ultimoResultado = x;
+      resultBox.innerText = fmt(x);
+      formulaText.innerText = formula;
+      formulaBox.classList.remove("hidden");
+    }
+
+    function setTipo(t) {
+      tipo = t;
+      const isDirecta = t === "directa";
+
+      btnDirecta.classList.toggle("bg-white/10", isDirecta);
+      btnDirecta.classList.toggle("text-white", isDirecta);
+      btnDirecta.classList.toggle("text-slate-400", !isDirecta);
+      btnInversa.classList.toggle("bg-white/10", !isDirecta);
+      btnInversa.classList.toggle("text-white", !isDirecta);
+      btnInversa.classList.toggle("text-slate-400", isDirecta);
+
+      tipoDesc.innerHTML = isDirecta
+        ? `<span class="text-slate-400 font-medium">Directa:</span> cuando una cantidad aumenta, la otra también aumenta.`
+        : `<span class="text-slate-400 font-medium">Inversa:</span> cuando una cantidad aumenta, la otra disminuye.`;
+
+      renderEjemplos();
+      calc();
+    }
+
+    function renderEjemplos() {
+      const lista = tipo === "directa" ? ejemplosDirecta : ejemplosInversa;
+      listaEjemplos.innerHTML = "";
+
+      lista.forEach((ej) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "w-full text-left px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition";
+        btn.innerHTML = `
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-slate-300 font-medium">${ej.label}</p>
+              <p class="text-xs text-slate-500 mt-0.5">${ej.desc}</p>
+            </div>
+            <div class="text-right text-xs text-slate-600 shrink-0 font-mono leading-relaxed">
+              ${ej.a} → ${ej.b}<br/>${ej.c} → <span class="text-orange-400">?</span>
+            </div>
+          </div>`;
+
+        btn.addEventListener("click", () => {
+          inputA.value = ej.a;
+          inputB.value = ej.b;
+          inputC.value = ej.c;
+          calc();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        listaEjemplos.appendChild(btn);
+      });
+    }
+
+    btnDirecta.addEventListener("click", () => setTipo("directa"));
+    btnInversa.addEventListener("click", () => setTipo("inversa"));
+
+    [inputA, inputB, inputC].forEach((inp) =>
+      inp.addEventListener("input", calc),
+    );
+
+    copyBtn.addEventListener("click", async () => {
+      if (ultimoResultado === null) return;
+      try {
+        await navigator.clipboard.writeText(String(ultimoResultado));
+        copyBtn.innerText = "Copiado ✓";
+        setTimeout(() => {
+          copyBtn.innerText = "Copiar resultado";
+        }, 1200);
+      } catch (e) {}
+    });
+
+    function activateTab(tab) {
+      const isShort = tab === "short";
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+    tabFull?.addEventListener("click", () => activateTab("full"));
+    activateTab("short");
+
+    setTipo("directa");
+  });
+</script>
