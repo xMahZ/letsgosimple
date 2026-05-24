@@ -1,0 +1,479 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+import {
+  pointsToChileanGrade,
+  gradeLabel,
+  isPassingGrade,
+  gradeFormula,
+} from "@/lib/chilean-grades";
+
+// Ejemplos estáticos para SSR preview
+const ejemplos = [
+  {
+    label: "Prueba de matemáticas",
+    puntos: 42,
+    total: 60,
+    desc: "42 de 60 puntos",
+  },
+  {
+    label: "Control de lectura",
+    puntos: 14,
+    total: 20,
+    desc: "14 de 20 puntos",
+  },
+  {
+    label: "Examen semestral",
+    puntos: 55,
+    total: 100,
+    desc: "55 de 100 puntos",
+  },
+  { label: "Trabajo práctico", puntos: 18, total: 25, desc: "18 de 25 puntos" },
+];
+---
+
+<BaseLayout
+  title="Calculadora de Notas Chilenas — Convierte puntaje a la escala 1.0–7.0"
+  description="Ingresa los puntos obtenidos y el total para obtener tu nota chilena al instante. Incluye tabla completa de puntajes."
+>
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Calculadora de Notas Chilenas
+    </h1>
+
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      Convierte puntajes a la escala 1.0–7.0 con aprobación en 60%
+    </h2>
+
+    <!-- Inputs -->
+    <div class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
+      <p class="mt-2 text-slate-500 text-xs leading-relaxed">
+        Ingresa los puntos obtenidos y el total de la prueba — la nota aparece
+        al instante. También puedes ver la tabla completa de puntajes y
+        descargarla en formato CSV para abrirla en Excel.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-5">
+        <!-- Puntos obtenidos -->
+        <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+          <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+            Puntos obtenidos
+          </p>
+          <input
+            id="inputPoints"
+            type="number"
+            inputmode="decimal"
+            placeholder="42"
+            class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+          />
+        </div>
+
+        <!-- Total de puntos -->
+        <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+          <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+            Total de puntos
+          </p>
+          <input
+            id="inputTotal"
+            type="number"
+            inputmode="decimal"
+            placeholder="60"
+            class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+          />
+        </div>
+
+        <!-- Resultado -->
+        <div
+          class="bg-[#070b16]/80 rounded-xl border border-orange-400/25 p-4 relative overflow-hidden"
+        >
+          <div class="absolute inset-0 bg-orange-400/5"></div>
+          <p
+            class="text-xs text-orange-400/60 mb-2 uppercase tracking-widest relative z-10"
+          >
+            Nota
+          </p>
+          <div
+            id="resultBox"
+            class="text-2xl font-bold text-orange-400 relative z-10 min-h-[36px] flex items-center"
+          >
+            —
+          </div>
+        </div>
+      </div>
+
+      <!-- Info secundaria -->
+      <div id="infoRow" class="hidden mt-4 grid grid-cols-3 gap-3 text-center">
+        <div class="rounded-lg bg-white/5 border border-white/10 px-3 py-2">
+          <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">
+            Porcentaje
+          </p>
+          <p id="infoPercent" class="text-sm font-semibold text-slate-200">—</p>
+        </div>
+        <div class="rounded-lg bg-white/5 border border-white/10 px-3 py-2">
+          <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">
+            Calificación
+          </p>
+          <p id="infoLabel" class="text-sm font-semibold text-slate-200">—</p>
+        </div>
+        <div class="rounded-lg bg-white/5 border border-white/10 px-3 py-2">
+          <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">
+            Estado
+          </p>
+          <p id="infoStatus" class="text-sm font-semibold text-slate-200">—</p>
+        </div>
+      </div>
+
+      <!-- Fórmula -->
+      <div
+        id="formulaBox"
+        class="hidden mt-4 p-3 rounded-lg bg-white/5 border border-white/10 text-center"
+      >
+        <p id="formulaText" class="text-sm text-slate-300 font-mono"></p>
+      </div>
+
+      <!-- Copiar -->
+      <div class="mt-4 flex justify-end">
+        <button
+          id="copyBtn"
+          class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-xs"
+          type="button"
+        >
+          Copiar nota
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de puntajes -->
+    <div id="tablaWrap" class="hidden mt-6">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs text-slate-500 uppercase tracking-widest">
+          Tabla de puntajes
+        </p>
+        <div class="flex items-center gap-3">
+          <span id="tablaSubtitle" class="text-xs text-slate-600"></span>
+          <button
+            id="downloadBtn"
+            type="button"
+            class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-xs"
+          >
+            Descargar CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-white/10 overflow-hidden">
+        <!-- Cabecera -->
+        <div
+          class="grid grid-cols-4 bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-slate-500 uppercase tracking-widest"
+        >
+          <span>Puntos</span>
+          <span>%</span>
+          <span>Nota</span>
+          <span>Estado</span>
+        </div>
+        <!-- Filas -->
+        <div
+          id="tablaBody"
+          class="divide-y divide-white/5 max-h-80 overflow-y-auto"
+        >
+        </div>
+      </div>
+    </div>
+
+    <!-- Ejemplos rápidos -->
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">Ejemplos rápidos</h2>
+      <p class="text-slate-500 text-xs mb-3">
+        Haz clic para cargar en la calculadora.
+      </p>
+      <div class="space-y-2">
+        {
+          ejemplos.map((ej) => (
+            <button
+              type="button"
+              class="ejemplo-btn w-full text-left px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition"
+              data-puntos={ej.puntos}
+              data-total={ej.total}
+            >
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-sm text-slate-300 font-medium">{ej.label}</p>
+                  <p class="text-xs text-slate-500 mt-0.5">{ej.desc}</p>
+                </div>
+                <span class="text-xs text-slate-600 shrink-0">
+                  {pointsToChileanGrade(ej.puntos, ej.total).toFixed(1)}
+                </span>
+              </div>
+            </button>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Cómo se calcula la nota?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Fórmula completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          En Chile la nota va de 1.0 a 7.0. El corte de aprobación es 4.0, que
+          corresponde a sacar el 60% de los puntos. Con 0% se obtiene un 1.0 y
+          con 100% un 7.0.
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>
+          La escala usa dos tramos lineales que se unen en el punto de
+          aprobación (60% = 4.0):
+        </p>
+        <ul class="mt-3 space-y-2 text-slate-400">
+          <li>
+            • Tramo bajo (0–60%):
+            <span class="text-slate-200 font-mono">
+              nota = 1 + (3 × % / 60)
+            </span>
+          </li>
+          <li>
+            • Tramo alto (60–100%):
+            <span class="text-slate-200 font-mono">
+              nota = 4 + (3 × (% − 60) / 40)
+            </span>
+          </li>
+        </ul>
+        <p class="mt-3 text-slate-400">
+          Ejemplo: 75 puntos de 100 → 75% → tramo alto →
+          <span class="text-slate-200 font-mono">4 + (3 × 15 / 40) = 5.1</span>
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputPoints = document.getElementById("inputPoints");
+    const inputTotal = document.getElementById("inputTotal");
+    const resultBox = document.getElementById("resultBox");
+    const infoRow = document.getElementById("infoRow");
+    const infoPercent = document.getElementById("infoPercent");
+    const infoLabel = document.getElementById("infoLabel");
+    const infoStatus = document.getElementById("infoStatus");
+    const formulaBox = document.getElementById("formulaBox");
+    const formulaText = document.getElementById("formulaText");
+    const copyBtn = document.getElementById("copyBtn");
+    const tablaWrap = document.getElementById("tablaWrap");
+    const tablaBody = document.getElementById("tablaBody");
+    const tablaSubtitle = document.getElementById("tablaSubtitle");
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    let ultimaNota = null;
+
+    // ── Escala bifásica ──────────────────────────────────────────────────────
+    function clamp(v, min, max) {
+      return Math.min(Math.max(v, min), max);
+    }
+
+    function pctToGrade(pct) {
+      const p = clamp(pct, 0, 100);
+      return p <= 60 ? 1 + (3 * p) / 60 : 4 + (3 * (p - 60)) / 40;
+    }
+
+    function roundG(v) {
+      return Math.round(v * 10) / 10;
+    }
+
+    function gradeLabel(g) {
+      if (g < 2) return "Muy deficiente";
+      if (g < 3) return "Deficiente";
+      if (g < 4) return "Insuficiente";
+      if (g < 5) return "Suficiente";
+      if (g < 6) return "Bien";
+      if (g < 6.5) return "Muy bien";
+      return "Excelente";
+    }
+
+    function gradeColor(g) {
+      if (g < 4) return "#f87171";
+      if (g < 5) return "#fbbf24";
+      if (g < 6) return "#34d399";
+      return "#6ee7b7";
+    }
+
+    // ── Calcular ─────────────────────────────────────────────────────────────
+    function calc() {
+      const pts = parseFloat(inputPoints.value);
+      const total = parseFloat(inputTotal.value);
+
+      if (!isFinite(pts) || !isFinite(total) || total <= 0) {
+        resultBox.textContent = "—";
+        resultBox.style.color = "";
+        infoRow.classList.add("hidden");
+        formulaBox.classList.add("hidden");
+        tablaWrap.classList.add("hidden");
+        ultimaNota = null;
+        return;
+      }
+
+      const pct = (pts / total) * 100;
+      const grade = roundG(pctToGrade(pct));
+      const label = gradeLabel(grade);
+      const pass = grade >= 4.0;
+      const color = gradeColor(grade);
+
+      ultimaNota = grade;
+
+      // Resultado principal
+      resultBox.textContent = grade.toFixed(1);
+      resultBox.style.color = color;
+
+      // Info secundaria
+      infoRow.classList.remove("hidden");
+      infoPercent.textContent = pct.toFixed(1) + "%";
+      infoLabel.textContent = label;
+      infoStatus.textContent = pass ? "✓ Aprobado" : "✗ Reprobado";
+      infoStatus.style.color = pass ? "#34d399" : "#f87171";
+
+      // Fórmula
+      const tramo =
+        pct <= 60
+          ? `1 + (3 × ${pct.toFixed(1)} / 60) = ${grade.toFixed(1)}`
+          : `4 + (3 × (${pct.toFixed(1)} − 60) / 40) = ${grade.toFixed(1)}`;
+      formulaText.textContent = `Fórmula: ${tramo}`;
+      formulaBox.classList.remove("hidden");
+
+      // Tabla
+      renderTabla(total, pts);
+    }
+
+    // ── Tabla ─────────────────────────────────────────────────────────────────
+    function renderTabla(total, currentPts) {
+      const max = Math.round(total);
+      tablaSubtitle.textContent = `total ${max} pts`;
+      tablaBody.innerHTML = "";
+
+      for (let i = 0; i <= max; i++) {
+        const pct = (i / total) * 100;
+        const grade = roundG(pctToGrade(pct));
+        const pass = grade >= 4.0;
+        const isActive = Math.round(currentPts) === i;
+        const color = gradeColor(grade);
+
+        const row = document.createElement("div");
+        row.className = "grid grid-cols-4 px-4 py-2 text-sm transition-colors";
+        row.style.background = isActive
+          ? "rgba(249,115,22,0.1)"
+          : i % 2 === 0
+            ? "transparent"
+            : "rgba(255,255,255,0.015)";
+
+        row.innerHTML = `
+          <span style="color:${isActive ? "#f97316" : "#94a3b8"}; font-weight:${isActive ? 700 : 400}">
+            ${isActive ? "→ " : ""}${i}
+          </span>
+          <span style="color:#64748b">${pct.toFixed(1)}%</span>
+          <span style="color:${color}; font-weight:600">${grade.toFixed(1)}</span>
+          <span style="color:${pass ? "#34d399" : "#f87171"}; font-size:11px">
+            ${pass ? "Aprobado" : "Reprobado"}
+          </span>
+        `;
+
+        tablaBody.appendChild(row);
+      }
+
+      tablaWrap.classList.remove("hidden");
+
+      // Scroll a fila activa
+      const rows = tablaBody.querySelectorAll("div");
+      const activeRow = rows[Math.round(currentPts)];
+    }
+
+    // ── Eventos ───────────────────────────────────────────────────────────────
+    inputPoints.addEventListener("input", calc);
+    inputTotal.addEventListener("input", calc);
+
+    document.querySelectorAll(".ejemplo-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        inputPoints.value = btn.dataset.puntos;
+        inputTotal.value = btn.dataset.total;
+        calc();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      if (ultimaNota === null) return;
+      try {
+        await navigator.clipboard.writeText(ultimaNota.toFixed(1));
+        copyBtn.textContent = "Copiado ✓";
+        setTimeout(() => {
+          copyBtn.textContent = "Copiar nota";
+        }, 1200);
+      } catch {}
+    });
+
+    // ── Tabs explicación ──────────────────────────────────────────────────────
+    function activateTab(tab) {
+      const isShort = tab === "short";
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort.addEventListener("click", () => activateTab("short"));
+    tabFull.addEventListener("click", () => activateTab("full"));
+    activateTab("short");
+
+    // ── Descarga CSV ──────────────────────────────────────────────────────────
+    const downloadBtn = document.getElementById("downloadBtn");
+    downloadBtn.addEventListener("click", () => {
+      const total = parseFloat(inputTotal.value);
+      if (!isFinite(total) || total <= 0) return;
+
+      const max = Math.round(total);
+      const lines = ["sep=;\nPuntos;Porcentaje;Nota;Estado"];
+      for (let i = 0; i <= max; i++) {
+        const pct = (i / total) * 100;
+        const grade = roundG(pctToGrade(pct));
+        const pass = grade >= 4.0 ? "Aprobado" : "Reprobado";
+        lines.push(`${i};${pct.toFixed(1)}%;${grade.toFixed(1)};${pass}`);
+      }
+
+      const blob = new Blob([lines.join("\n")], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `notas-${max}pts.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  });
+</script>
