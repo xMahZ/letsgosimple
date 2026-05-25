@@ -1,0 +1,690 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+import financeData from "@/data/cl-finance.json";
+
+const valorUF = financeData.latest.uf;
+const fechaUF = financeData.latest.dates.uf;
+---
+
+<BaseLayout
+  title="Calculadora de Finiquito Chile 2024 — Cuánto me corresponde"
+  description="Calcula tu finiquito en Chile según la causal de despido. Incluye indemnización por años de servicio, vacaciones proporcionales, mes proporcional y gratificación."
+>
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Calculadora de Finiquito
+    </h1>
+
+    <h2 class="mt-2 text-slate-400 font-normal text-base">
+      Calcula cuánto te corresponde según tu causal de despido — Chile 2024
+    </h2>
+
+    <p class="mt-3 text-slate-500 text-xs leading-relaxed">
+      Ingresa tus datos y obtén el desglose completo de tu finiquito al
+      instante: indemnización, vacaciones proporcionales, mes proporcional y
+      más. Los montos son referenciales; para casos complejos consulta a un
+      abogado laboral.
+    </p>
+
+    <!-- Formulario -->
+    <div class="mt-6 space-y-3">
+      <!-- 1. Causal -->
+      <div class="p-5 rounded-xl border border-white/10 bg-white/5">
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">
+          <span
+            class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-400/20 text-orange-400 text-[10px] font-bold mr-1.5"
+            >1</span
+          >
+          Causal de término
+        </p>
+        <div class="space-y-2">
+          {
+            [
+              {
+                id: "c161e",
+                label: "Art. 161 — Necesidades de la empresa",
+                desc: "La causal más común. Tienes derecho a indemnización.",
+              },
+              {
+                id: "c161d",
+                label: "Art. 161 — Desahucio del empleador",
+                desc: "Trabajadores de confianza, casa particular, etc.",
+              },
+              {
+                id: "c159",
+                label: "Art. 159 — Renuncia / mutuo acuerdo / vencimiento",
+                desc: "Sin indemnización por años de servicio.",
+              },
+              {
+                id: "c160",
+                label: "Art. 160 — Despido por falta grave",
+                desc: "Sin indemnización. El empleador debe probar la causal.",
+              },
+            ].map((c) => (
+              <label class="flex items-start gap-3 p-3 rounded-lg bg-[#070b16]/80 border border-white/10 cursor-pointer hover:border-white/20 transition has-[:checked]:border-orange-400/40 has-[:checked]:bg-orange-400/5">
+                <input
+                  type="radio"
+                  name="causal"
+                  value={c.id}
+                  class="mt-0.5 accent-orange-400 shrink-0"
+                />
+                <div>
+                  <p class="text-sm text-slate-200 font-medium">{c.label}</p>
+                  <p class="text-xs text-slate-500 mt-0.5">{c.desc}</p>
+                </div>
+              </label>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- 2. Remuneración -->
+      <div class="p-5 rounded-xl border border-white/10 bg-white/5">
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">
+          <span
+            class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-400/20 text-orange-400 text-[10px] font-bold mr-1.5"
+            >2</span
+          >
+          Remuneración
+        </p>
+        <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+          <p class="text-xs text-slate-600 mb-1 uppercase tracking-widest">
+            Remuneración mensual total ($)
+          </p>
+          <p class="text-xs text-slate-700 mb-3">
+            Incluye sueldo base + bonos fijos + colación + movilización
+          </p>
+          <input
+            id="inputRemuTotal"
+            type="number"
+            inputmode="decimal"
+            placeholder="600000"
+            class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+          />
+        </div>
+      </div>
+
+      <!-- 3. Fechas -->
+      <div class="p-5 rounded-xl border border-white/10 bg-white/5">
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">
+          <span
+            class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-400/20 text-orange-400 text-[10px] font-bold mr-1.5"
+            >3</span
+          >
+          Fechas del contrato
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+            <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+              Fecha de ingreso
+            </p>
+            <input
+              id="inputIngreso"
+              type="date"
+              class="w-full bg-transparent text-xl font-bold text-white outline-none [color-scheme:dark]"
+            />
+          </div>
+          <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+            <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+              Fecha de término
+            </p>
+            <input
+              id="inputTermino"
+              type="date"
+              class="w-full bg-transparent text-xl font-bold text-white outline-none [color-scheme:dark]"
+            />
+          </div>
+        </div>
+        <div
+          id="anyosBox"
+          class="hidden mt-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-400"
+        >
+          Tiempo trabajado: <span
+            id="tiempoTexto"
+            class="text-slate-200 font-medium"></span>
+        </div>
+      </div>
+
+      <!-- 4. Vacaciones -->
+      <div class="p-5 rounded-xl border border-white/10 bg-white/5">
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">
+          <span
+            class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-400/20 text-orange-400 text-[10px] font-bold mr-1.5"
+            >4</span
+          >
+          Vacaciones pendientes
+        </p>
+        <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+          <p class="text-xs text-slate-600 mb-1 uppercase tracking-widest">
+            Días de vacaciones que no tomaste
+          </p>
+          <p class="text-xs text-slate-700 mb-3">
+            Revisa tus liquidaciones. Si no tienes pendientes, ingresa 0.
+          </p>
+          <input
+            id="inputVacaciones"
+            type="number"
+            inputmode="decimal"
+            placeholder="0"
+            min="0"
+            class="w-full bg-transparent text-2xl font-bold text-white outline-none placeholder:text-slate-700 [appearance:textfield]"
+          />
+        </div>
+      </div>
+
+      <!-- 5. Opciones adicionales -->
+      <div class="p-5 rounded-xl border border-white/10 bg-white/5">
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">
+          <span
+            class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-400/20 text-orange-400 text-[10px] font-bold mr-1.5"
+            >5</span
+          >
+          Opciones adicionales
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+            <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+              ¿Hubo aviso previo de 30 días?
+            </p>
+            <div class="flex gap-3 mt-1">
+              {
+                [
+                  { v: "si", l: "Sí" },
+                  { v: "no", l: "No" },
+                ].map((o) => (
+                  <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                    <input
+                      type="radio"
+                      name="aviso"
+                      value={o.v}
+                      class="accent-orange-400"
+                    />
+                    {o.l}
+                  </label>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="bg-[#070b16]/80 rounded-xl border border-white/10 p-4">
+            <p class="text-xs text-slate-600 mb-2 uppercase tracking-widest">
+              ¿Cómo paga la gratificación?
+            </p>
+            <div class="flex gap-3 mt-1">
+              {
+                [
+                  { v: "mensual", l: "Mensualizada" },
+                  { v: "anual", l: "Anual" },
+                ].map((o) => (
+                  <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                    <input
+                      type="radio"
+                      name="gratif"
+                      value={o.v}
+                      class="accent-orange-400"
+                    />
+                    {o.l}
+                  </label>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultado -->
+    <div id="resultadoWrap" class="hidden mt-6 space-y-3">
+      <!-- Total -->
+      <div
+        class="p-5 rounded-xl border border-orange-400/25 bg-orange-400/5 relative overflow-hidden"
+      >
+        <div class="absolute inset-0 bg-orange-400/3"></div>
+        <p
+          class="text-xs text-orange-400/60 uppercase tracking-widest relative z-10"
+        >
+          Total finiquito estimado
+        </p>
+        <div
+          id="totalFiniquito"
+          class="mt-2 text-4xl font-bold text-orange-400 relative z-10"
+        >
+          —
+        </div>
+        <p id="totalDesc" class="mt-1 text-xs text-slate-500 relative z-10"></p>
+      </div>
+
+      <!-- Desglose -->
+      <div class="rounded-xl border border-white/10 overflow-hidden">
+        <div
+          class="bg-white/5 border-b border-white/10 px-4 py-2 text-xs text-slate-500 uppercase tracking-widest"
+        >
+          Desglose por concepto
+        </div>
+        <div id="desglose" class="divide-y divide-white/5"></div>
+      </div>
+
+      <!-- Aviso legal -->
+      <p class="text-xs text-slate-600 leading-relaxed">
+        * Cálculo basado en la legislación vigente del Código del Trabajo de
+        Chile. UF utilizada: {valorUF.toLocaleString("es-CL")} ({fechaUF}). Los
+        montos finales pueden variar según acuerdos individuales, pactos de
+        indemnización o situaciones especiales.
+      </p>
+
+      <!-- Copiar -->
+      <div class="flex justify-end">
+        <button
+          id="copyBtn"
+          type="button"
+          class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition text-xs"
+        >
+          Copiar resumen
+        </button>
+      </div>
+    </div>
+
+    <!-- Explicación long tail -->
+    <section class="mt-10 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Qué incluye el finiquito?
+      </h2>
+
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          Resumen
+        </button>
+        <button
+          id="tabCausales"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Causales de despido
+        </button>
+        <button
+          id="tabConceptos"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Conceptos del finiquito
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          El finiquito es el documento que pone término a la relación laboral en
+          Chile. Dependiendo de la causal de despido, puede incluir
+          indemnización por años de servicio, indemnización sustitutiva del
+          aviso previo, vacaciones proporcionales, mes proporcional y
+          gratificación proporcional.
+        </p>
+        <p class="mt-3 text-slate-400">
+          La causal es lo más importante: si te despiden por necesidades de la
+          empresa (art. 161) tienes derecho a indemnización. Si renuncias o hay
+          mutuo acuerdo (art. 159), no.
+        </p>
+      </div>
+
+      <div id="contentCausales" class="hidden space-y-4">
+        {
+          [
+            {
+              art: "Art. 161 — Necesidades de la empresa",
+              color: "#f97316",
+              items: [
+                "Es la causal más usada para despidos sin falta del trabajador.",
+                "El empleador debe pagar indemnización por años de servicio (1 mes de remuneración por año trabajado).",
+                "Si no dio aviso previo de 30 días, también debe pagar indemnización sustitutiva equivalente a 1 mes.",
+                "Tope legal: 90 UF por año, máximo 11 años (salvo pacto superior).",
+              ],
+            },
+            {
+              art: "Art. 159 — Renuncia / mutuo acuerdo / vencimiento de contrato",
+              color: "#fbbf24",
+              items: [
+                "No corresponde indemnización por años de servicio.",
+                "Sí corresponden vacaciones proporcionales y mes proporcional.",
+                "En caso de mutuo acuerdo, las partes pueden negociar un monto voluntario.",
+              ],
+            },
+            {
+              art: "Art. 160 — Despido por falta grave",
+              color: "#f87171",
+              items: [
+                "No corresponde indemnización.",
+                "El empleador debe probar la causal con evidencia suficiente.",
+                "Si no logra probarla, el despido se considera injustificado y debes reclamar en tribunales.",
+                "Sí corresponde mes proporcional y vacaciones pendientes.",
+              ],
+            },
+          ].map((c) => (
+            <div class="p-4 rounded-lg bg-white/5 border border-white/10">
+              <p class="text-sm font-semibold mb-2" style={`color:${c.color}`}>
+                {c.art}
+              </p>
+              <ul class="space-y-1">
+                {c.items.map((item) => (
+                  <li class="text-xs text-slate-400">• {item}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+
+      <div id="contentConceptos" class="hidden space-y-4">
+        {
+          [
+            {
+              titulo: "Indemnización por años de servicio",
+              desc: "1 mes de última remuneración mensual por cada año trabajado (o fracción superior a 6 meses). Tiene tope de 90 UF por año y máximo 11 años, salvo pacto individual.",
+            },
+            {
+              titulo: "Indemnización sustitutiva del aviso previo",
+              desc: "Si el empleador no avisó el despido con 30 días de anticipación, debe pagar el equivalente a 1 mes de remuneración adicional.",
+            },
+            {
+              titulo: "Mes proporcional",
+              desc: "Los días trabajados del último mes que no alcanzaron a completar el período de pago. Se calcula dividiendo la remuneración mensual por 30 y multiplicando por los días trabajados.",
+            },
+            {
+              titulo: "Vacaciones proporcionales",
+              desc: "15 días hábiles por año completo. Si no completaste el año, se calcula proporcional a los meses trabajados. Se paga sobre la remuneración íntegra.",
+            },
+            {
+              titulo: "Gratificación proporcional",
+              desc: "Si la empresa paga gratificación anual (no mensualizada), debes recibir la parte proporcional al tiempo trabajado durante el año en curso.",
+            },
+          ].map((c) => (
+            <div class="p-4 rounded-lg bg-white/5 border border-white/10">
+              <p class="text-sm font-semibold text-slate-200 mb-1">
+                {c.titulo}
+              </p>
+              <p class="text-xs text-slate-400 leading-relaxed">{c.desc}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ UFValue: valorUF, UFDate: fechaUF }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    // ── Elementos ─────────────────────────────────────────────────────────────
+    const resultadoWrap = document.getElementById("resultadoWrap");
+    const anyosBox = document.getElementById("anyosBox");
+    const totalFiniquito = document.getElementById("totalFiniquito");
+    const totalDesc = document.getElementById("totalDesc");
+    const desgloseEl = document.getElementById("desglose");
+    const copyBtn = document.getElementById("copyBtn");
+    const tabShort = document.getElementById("tabShort");
+    const tabCausales = document.getElementById("tabCausales");
+    const tabConceptos = document.getElementById("tabConceptos");
+    const contentShort = document.getElementById("contentShort");
+    const contentCausales = document.getElementById("contentCausales");
+    const contentConceptos = document.getElementById("contentConceptos");
+
+    // UF inyectada desde cl-finance.json en build time
+    const valorUF = UFValue;
+    const fechaUF = UFDate;
+    let ultimoResumen = null;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function fmt(n) {
+      return "$" + Math.round(n).toLocaleString("es-CL");
+    }
+
+    function diffYearsMonthsDays(desde, hasta) {
+      let años = hasta.getFullYear() - desde.getFullYear();
+      let meses = hasta.getMonth() - desde.getMonth();
+      let dias = hasta.getDate() - desde.getDate();
+      if (dias < 0) {
+        meses--;
+        dias += 30;
+      }
+      if (meses < 0) {
+        años--;
+        meses += 12;
+      }
+      return { años, meses, dias };
+    }
+
+    function anyosParaIndemnizacion(desde, hasta) {
+      const { años, meses } = diffYearsMonthsDays(desde, hasta);
+      // fracción superior a 6 meses cuenta como año completo
+      return meses >= 6 ? años + 1 : años;
+    }
+
+    function diasMesProporcional(hasta) {
+      // días trabajados en el último mes
+      return hasta.getDate();
+    }
+
+    function mesesEnAnyo(desde, hasta) {
+      // meses trabajados dentro del año calendario para gratificación
+      const inicio = new Date(hasta.getFullYear(), 0, 1);
+      const ref = desde > inicio ? desde : inicio;
+      const meses = hasta.getMonth() - ref.getMonth() + 1;
+      return Math.max(meses, 0);
+    }
+
+    // ── Calcular ─────────────────────────────────────────────────────────────
+    function calcular() {
+      const causal = document.querySelector(
+        'input[name="causal"]:checked',
+      )?.value;
+      const aviso = document.querySelector(
+        'input[name="aviso"]:checked',
+      )?.value;
+      const gratif = document.querySelector(
+        'input[name="gratif"]:checked',
+      )?.value;
+      const remuTotal = parseFloat(
+        document.getElementById("inputRemuTotal").value,
+      );
+      const diasVacInput = parseFloat(
+        document.getElementById("inputVacaciones").value,
+      );
+      const diasVac =
+        isFinite(diasVacInput) && diasVacInput >= 0 ? diasVacInput : 0;
+      const fechaIng = document.getElementById("inputIngreso").value;
+      const fechaTerm = document.getElementById("inputTermino").value;
+
+      if (!causal || !remuTotal || !fechaIng || !fechaTerm) {
+        resultadoWrap.classList.add("hidden");
+        anyosBox.classList.add("hidden");
+        return;
+      }
+
+      const desde = new Date(fechaIng);
+      const hasta = new Date(fechaTerm);
+
+      if (hasta <= desde) {
+        resultadoWrap.classList.add("hidden");
+        anyosBox.classList.add("hidden");
+        return;
+      }
+
+      // Mostrar tiempo trabajado
+      const dt = diffYearsMonthsDays(desde, hasta);
+      let tiempoStr = "";
+      if (dt.años > 0) tiempoStr += `${dt.años} año${dt.años > 1 ? "s" : ""}`;
+      if (dt.meses > 0)
+        tiempoStr += `${tiempoStr ? ", " : ""}${dt.meses} mes${dt.meses > 1 ? "es" : ""}`;
+      if (dt.dias > 0)
+        tiempoStr += `${tiempoStr ? " y " : ""}${dt.dias} día${dt.dias > 1 ? "s" : ""}`;
+      document.getElementById("tiempoTexto").textContent =
+        tiempoStr || "menos de un día";
+      anyosBox.classList.remove("hidden");
+
+      const conceptos = [];
+      let total = 0;
+
+      // Tope UF por año
+      const topeAnual = 90 * valorUF;
+
+      // ── 1. Indemnización por años de servicio ─────────────────────────────
+      if (causal === "c161e" || causal === "c161d") {
+        const años = Math.min(anyosParaIndemnizacion(desde, hasta), 11);
+        if (años > 0) {
+          const montoSinTope = remuTotal * años;
+          const topeLegal = topeAnual * años;
+          const monto = Math.min(montoSinTope, topeLegal);
+          total += monto;
+          conceptos.push({
+            nombre: "Indemnización por años de servicio",
+            monto,
+            detalle: `${años} año${años > 1 ? "s" : ""} × ${fmt(remuTotal)} (tope legal: ${años} × 90 UF)`,
+          });
+        }
+      }
+
+      // ── 2. Indemnización sustitutiva del aviso previo ─────────────────────
+      if ((causal === "c161e" || causal === "c161d") && aviso === "no") {
+        total += remuTotal;
+        conceptos.push({
+          nombre: "Indemnización sustitutiva del aviso previo",
+          monto: remuTotal,
+          detalle: "Empleador no dio aviso con 30 días de anticipación",
+        });
+      }
+
+      // ── 3. Mes proporcional ───────────────────────────────────────────────
+      const diasMes = hasta.getDate();
+      const mesProp = (remuTotal / 30) * diasMes;
+      total += mesProp;
+      conceptos.push({
+        nombre: "Mes proporcional",
+        monto: mesProp,
+        detalle: `${diasMes} días trabajados en el último mes × (${fmt(remuTotal)} / 30)`,
+      });
+
+      // ── 4. Vacaciones pendientes (ingresadas por el usuario) ──────────────
+      if (diasVac > 0) {
+        const vacMonto = (remuTotal / 30) * diasVac;
+        total += vacMonto;
+        conceptos.push({
+          nombre: "Vacaciones pendientes",
+          monto: vacMonto,
+          detalle: `${diasVac} día${diasVac !== 1 ? "s" : ""} × (${fmt(remuTotal)} / 30)`,
+        });
+      }
+
+      // ── 5. Gratificación proporcional ─────────────────────────────────────
+      if (gratif === "anual") {
+        const mesesGratif = mesesEnAnyo(desde, hasta);
+        const gratifAnual = Math.min(remuTotal * 0.25 * 12, 4.75 * 500000);
+        const gratifProp = (gratifAnual / 12) * mesesGratif;
+        total += gratifProp;
+        conceptos.push({
+          nombre: "Gratificación proporcional",
+          monto: gratifProp,
+          detalle: `${mesesGratif} mes${mesesGratif !== 1 ? "es" : ""} trabajados en el año`,
+        });
+      }
+
+      // ── Render ────────────────────────────────────────────────────────────
+      totalFiniquito.textContent = fmt(total);
+      totalDesc.textContent =
+        causal === "c159" || causal === "c160"
+          ? "Sin indemnización por años de servicio según causal seleccionada"
+          : "Incluye indemnización según art. 161";
+
+      desgloseEl.innerHTML = "";
+      conceptos.forEach((c) => {
+        const row = document.createElement("div");
+        row.className = "flex items-start justify-between gap-4 px-4 py-3";
+        row.innerHTML = `
+          <div>
+            <p class="text-sm text-slate-200">${c.nombre}</p>
+            <p class="text-xs text-slate-500 mt-0.5">${c.detalle}</p>
+          </div>
+          <span class="text-sm font-semibold shrink-0 text-emerald-400">
+            ${fmt(c.monto)}
+          </span>
+        `;
+        desgloseEl.appendChild(row);
+      });
+
+      const rowTotal = document.createElement("div");
+      rowTotal.className =
+        "flex items-center justify-between px-4 py-3 bg-white/5";
+      rowTotal.innerHTML = `
+        <p class="text-sm font-semibold text-white">Total</p>
+        <span class="text-sm font-bold text-orange-400">${fmt(total)}</span>
+      `;
+      desgloseEl.appendChild(rowTotal);
+
+      ultimoResumen =
+        conceptos.map((c) => `${c.nombre}: ${fmt(c.monto)}`).join("\n") +
+        `\nTotal: ${fmt(total)}`;
+
+      resultadoWrap.classList.remove("hidden");
+    }
+
+    // ── Eventos en tiempo real ────────────────────────────────────────────────
+    document
+      .getElementById("inputRemuTotal")
+      .addEventListener("input", calcular);
+    document
+      .getElementById("inputVacaciones")
+      .addEventListener("input", calcular);
+    document
+      .getElementById("inputIngreso")
+      .addEventListener("change", calcular);
+    document
+      .getElementById("inputTermino")
+      .addEventListener("change", calcular);
+    document
+      .querySelectorAll('input[name="causal"]')
+      .forEach((r) => r.addEventListener("change", calcular));
+    document
+      .querySelectorAll('input[name="aviso"]')
+      .forEach((r) => r.addEventListener("change", calcular));
+    document
+      .querySelectorAll('input[name="gratif"]')
+      .forEach((r) => r.addEventListener("change", calcular));
+
+    copyBtn.addEventListener("click", async () => {
+      if (!ultimoResumen) return;
+      try {
+        await navigator.clipboard.writeText(ultimoResumen);
+        copyBtn.textContent = "Copiado ✓";
+        setTimeout(() => {
+          copyBtn.textContent = "Copiar resumen";
+        }, 1200);
+      } catch {}
+    });
+
+    // ── Tabs ─────────────────────────────────────────────────────────────────
+    const tabs = [
+      { btn: tabShort, content: contentShort, id: "short" },
+      { btn: tabCausales, content: contentCausales, id: "causales" },
+      { btn: tabConceptos, content: contentConceptos, id: "conceptos" },
+    ];
+
+    function activateTab(activeId) {
+      tabs.forEach(({ btn, content, id }) => {
+        const isActive = id === activeId;
+        content.classList.toggle("hidden", !isActive);
+        btn.classList.toggle("bg-white/10", isActive);
+        btn.classList.toggle("text-white", isActive);
+        btn.classList.toggle("text-slate-300", !isActive);
+      });
+    }
+
+    tabs.forEach(({ btn, id }) =>
+      btn.addEventListener("click", () => activateTab(id)),
+    );
+    activateTab("short");
+
+    // Fecha de término por defecto = hoy
+    const hoy = new Date().toISOString().split("T")[0];
+    document.getElementById("inputTermino").value = hoy;
+  });
+</script>
