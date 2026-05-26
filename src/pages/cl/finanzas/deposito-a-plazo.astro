@@ -1,0 +1,611 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+---
+
+<BaseLayout title="Simulador de Depósito a Plazo | Chile">
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Qué es un depósito a plazo?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Un depósito a plazo es un instrumento de ahorro en el que depositas dinero en un banco por un período determinado a una tasa de interés fija, retirando el capital más los intereses al vencimiento."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Conviene reinvertir el depósito a plazo?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí, reinvertir el depósito a plazo (renovarlo junto con los intereses ganados) permite aprovechar el interés compuesto, haciendo que el dinero crezca más rápido con cada período."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo se calculan los intereses de un depósito a plazo en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Los intereses se calculan multiplicando el capital por la tasa de interés mensual. Si se reinvierte, los intereses se suman al capital mes a mes, generando interés compuesto."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cuál es la tasa típica de un depósito a plazo en Chile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Las tasas varían según el banco y el plazo, pero suelen estar entre el 4% y el 8% anual para plazos de 30 a 360 días. Es recomendable comparar entre instituciones antes de depositar."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Simulador de Depósito a Plazo
+    </h1>
+    <p class="mt-2 text-slate-400">
+      Calcula cuánto ganarás según el plazo, tasa y si reinviertes mes a mes.
+    </p>
+
+    <!-- Instrucciones -->
+    <div
+      class="mt-4 p-4 rounded-xl border border-white/10 bg-white/5 text-sm text-slate-400 flex gap-3 items-start"
+    >
+      <span class="text-lg leading-none mt-0.5">💡</span>
+      <p>
+        Ingresa el monto que depositarías, ajusta la tasa anual con el slider o
+        escríbela directamente, define por cuántos meses y activa <span
+          class="text-white font-medium">Reinvertir</span
+        > si planeas renovar el depósito sumando los intereses cada mes. El resultado
+        se actualiza en tiempo real.
+      </p>
+    </div>
+
+    <!-- Card principal -->
+    <div
+      class="mt-6 rounded-xl border border-white/10 bg-white/5 p-6 space-y-6"
+    >
+      <!-- Capital con formato CLP -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1"
+          >Monto a depositar (CLP)</label
+        >
+        <div class="relative">
+          <span
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg font-medium pointer-events-none"
+            >$</span
+          >
+          <input
+            id="capitalDisplay"
+            type="text"
+            inputmode="numeric"
+            placeholder="1.000.000"
+            class="w-full pl-8 pr-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white text-lg outline-none focus:border-blue-500 transition"
+          />
+          <input id="capitalReal" type="hidden" value="" />
+        </div>
+      </div>
+
+      <!-- Tasa con slider + input -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-2"
+          >Tasa de interés anual</label
+        >
+        <div class="flex items-center gap-3 mb-2">
+          <input
+            id="tasaSlider"
+            type="range"
+            min="1"
+            max="10"
+            step="0.1"
+            value="5"
+            class="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+            style="background: linear-gradient(to right, #3b82f6 50%, #1e293b 50%)"
+          />
+          <div class="relative flex items-center">
+            <input
+              id="tasaInput"
+              type="number"
+              min="0.1"
+              max="100"
+              step="0.1"
+              value="5"
+              class="w-25 px-3 py-2 pr-7 rounded-lg bg-[#070b16] border border-white/10 text-blue-400 text-lg font-semibold outline-none focus:border-blue-500 transition text-right"
+            />
+            <span
+              class="absolute right-2 text-blue-400 font-semibold text-sm pointer-events-none"
+              >%</span
+            >
+          </div>
+        </div>
+        <div class="flex justify-between text-xs text-slate-600">
+          <span>1%</span>
+          <span>5%</span>
+          <span>10%</span>
+        </div>
+      </div>
+
+      <!-- Plazo + Reinvertir -->
+      <div class="flex gap-4 items-end">
+        <div class="flex-1">
+          <label class="block text-sm text-slate-300 mb-1">Plazo (meses)</label>
+          <input
+            id="meses"
+            type="number"
+            min="1"
+            max="360"
+            step="1"
+            placeholder="Ej: 12"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white text-lg outline-none focus:border-blue-500 transition"
+          />
+        </div>
+        <div class="pb-1">
+          <label class="block text-sm text-slate-300 mb-2 text-center"
+            >Reinvertir</label
+          >
+          <button
+            id="reinvertirBtn"
+            type="button"
+            class="relative w-14 h-7 rounded-full border border-white/10 bg-[#070b16] transition-all duration-300"
+            aria-pressed="false"
+          >
+            <span
+              id="toggleDot"
+              class="absolute top-1 left-1 w-5 h-5 rounded-full bg-slate-500 transition-all duration-300"
+            ></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Resultado destacado -->
+      <div
+        id="resultadoBox"
+        class="hidden rounded-xl border border-blue-500/30 bg-blue-500/5 p-5"
+      >
+        <div class="text-center mb-4">
+          <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">
+            Monto final
+          </div>
+          <div
+            id="resTotal"
+            class="text-4xl font-bold text-white tracking-tight"
+          >
+            —
+          </div>
+        </div>
+        <div class="flex gap-3 mb-4">
+          <div
+            class="flex-1 rounded-lg bg-white/5 border border-white/10 p-3 text-center"
+          >
+            <div class="text-xs text-slate-500 mb-1">Capital inicial</div>
+            <div id="resCapital" class="text-lg font-semibold text-slate-200">
+              —
+            </div>
+          </div>
+          <div
+            class="flex-1 rounded-lg bg-green-500/10 border border-green-500/20 p-3 text-center"
+          >
+            <div class="text-xs text-slate-500 mb-1">Intereses ganados</div>
+            <div id="resIntereses" class="text-lg font-semibold text-green-400">
+              —
+            </div>
+          </div>
+        </div>
+        <div class="mb-1">
+          <div class="flex justify-between text-xs text-slate-500 mb-1">
+            <span>Capital</span>
+            <span id="pctLabel">0% intereses</span>
+          </div>
+          <div
+            class="w-full h-3 rounded-full bg-white/5 border border-white/10 overflow-hidden"
+          >
+            <div class="h-full flex">
+              <div
+                id="barCapital"
+                class="h-full bg-blue-600 transition-all duration-500"
+                style="width:100%"
+              >
+              </div>
+              <div
+                id="barIntereses"
+                class="h-full bg-green-500 transition-all duration-500"
+                style="width:0%"
+              >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-xs text-slate-500 mt-3">
+      * Los valores mostrados son referenciales. Las condiciones reales del
+      depósito, incluyendo tasa, plazo y monto mínimo, deben ser confirmadas
+      directamente con la entidad bancaria o financiera donde se contratará el
+      producto.
+    </p>
+    <!-- Tabla mes a mes -->
+    <section id="seccionTabla" class="mt-6 hidden">
+      <h2 class="text-white font-semibold text-base mb-1">Detalle por mes</h2>
+      <p class="text-slate-500 text-xs mb-3">
+        Intereses generados cada mes y saldo acumulado.
+      </p>
+      <div class="rounded-xl border border-white/10 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10 bg-white/5">
+              <th class="py-2 px-4 text-left font-normal text-slate-400">Mes</th
+              >
+              <th class="py-2 px-4 text-right font-normal text-slate-400"
+                >Interés del mes</th
+              >
+              <th class="py-2 px-4 text-right font-normal text-slate-400"
+                >Saldo acumulado</th
+              >
+            </tr>
+          </thead>
+          <tbody id="tablaBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Ejemplos rápidos -->
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">
+        Simulaciones de ejemplo
+      </h2>
+      <p class="text-slate-500 text-xs mb-4">
+        Escenarios típicos a tasa 5% anual, sin reinversión. Haz clic para
+        cargar los valores.
+      </p>
+      <div class="space-y-1">
+        {
+          [
+            { capital: 500000, meses: 3, label: "Ahorro corto plazo" },
+            { capital: 1000000, meses: 6, label: "Medio año" },
+            { capital: 2000000, meses: 12, label: "Un año" },
+            { capital: 5000000, meses: 12, label: "5 millones, un año" },
+            { capital: 10000000, meses: 24, label: "10 millones, 2 años" },
+            { capital: 50000000, meses: 36, label: "50 millones, 3 años" },
+          ].map(({ capital, meses, label }) => {
+            // interés simple: capital × tasa_mensual × meses
+            const r = 5 / 100 / 12;
+            const intereses = capital * r * meses;
+            const total = capital + intereses;
+            return (
+              <button
+                class="quick-row w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm"
+                data-capital={capital}
+                data-meses={meses}
+                type="button"
+              >
+                <div class="text-left">
+                  <div class="text-slate-200">{label}</div>
+                  <div class="text-slate-500 text-xs">
+                    ${capital.toLocaleString("es-CL")} · {meses} meses · 5%
+                    anual
+                  </div>
+                </div>
+                <div class="text-right ml-4 shrink-0">
+                  <div class="text-slate-200">
+                    ${Math.round(total).toLocaleString("es-CL")}
+                  </div>
+                  <div class="text-green-400 text-xs">
+                    +${Math.round(intereses).toLocaleString("es-CL")}
+                  </div>
+                </div>
+              </button>
+            );
+          })
+        }
+      </div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-8 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Qué es un depósito a plazo?
+      </h2>
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button">En pocas palabras</button
+        >
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button">Explicación completa</button
+        >
+      </div>
+      <div id="contentShort">
+        <p>
+          Un depósito a plazo es una forma de ahorrar en la que le prestas tu
+          dinero al banco por un tiempo determinado. A cambio, el banco te paga
+          intereses. Si al vencimiento reinviertes el capital más los intereses,
+          ese dinero empieza a crecer sobre sí mismo.
+        </p>
+      </div>
+      <div id="contentFull" class="hidden">
+        <p>
+          Un depósito a plazo (DAP) es un instrumento de ahorro ofrecido por
+          bancos e instituciones financieras en Chile. El cliente deposita una
+          cantidad fija por un período definido — desde 7 días hasta varios años
+          — y al vencimiento recibe el capital más los intereses pactados.
+        </p>
+        <p class="mt-3">
+          La tasa de interés es fija durante el plazo acordado y se expresa
+          habitualmente de forma anual. Para calcular los intereses mensuales,
+          se divide la tasa anual entre 12.
+        </p>
+        <p class="mt-3">
+          Si el depósito se <strong class="text-white">reinvierte</strong>, el
+          capital más los intereses se depositan nuevamente al mismo plazo y
+          tasa, generando interés compuesto. Esto hace que el dinero crezca más
+          rápido con cada período, especialmente a largo plazo.
+        </p>
+        <p class="mt-3">
+          En Chile, los depósitos a plazo están cubiertos por la garantía
+          estatal para personas naturales, lo que los hace un instrumento de
+          bajo riesgo. Las tasas varían según el banco, el monto y el plazo.
+        </p>
+      </div>
+      <div class="sr-only">
+        <p>
+          Simulador de depósito a plazo en Chile. Calcula el monto final, los
+          intereses ganados y el crecimiento mes a mes según el capital
+          depositado, la tasa de interés anual y el número de meses.
+        </p>
+        <p>
+          Incluye opción de reinversión para simular el efecto del interés
+          compuesto en depósitos a plazo renovados mensualmente.
+        </p>
+        <p>
+          Útil para comparar tasas entre bancos y proyectar el rendimiento de
+          ahorros en depósito a plazo, cuenta de ahorro o fondos de inversión en
+          Chile.
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #1e40af;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    transition: box-shadow 0.2s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.25);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #1e40af;
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const capitalDisplay = document.getElementById("capitalDisplay");
+    const capitalReal = document.getElementById("capitalReal");
+    const tasaSlider = document.getElementById("tasaSlider");
+    const tasaInput = document.getElementById("tasaInput");
+    const mesesInput = document.getElementById("meses");
+    const reinvertirBtn = document.getElementById("reinvertirBtn");
+    const toggleDot = document.getElementById("toggleDot");
+
+    const resultadoBox = document.getElementById("resultadoBox");
+    const resTotal = document.getElementById("resTotal");
+    const resCapital = document.getElementById("resCapital");
+    const resIntereses = document.getElementById("resIntereses");
+    const barCapital = document.getElementById("barCapital");
+    const barIntereses = document.getElementById("barIntereses");
+    const pctLabel = document.getElementById("pctLabel");
+
+    const seccionTabla = document.getElementById("seccionTabla");
+    const tablaBody = document.getElementById("tablaBody");
+
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    let reinvertir = false;
+
+    function fmt(v) {
+      return "$" + Math.round(v).toLocaleString("es-CL");
+    }
+
+    // --- Formato CLP en input ---
+    capitalDisplay.addEventListener("input", () => {
+      const raw = capitalDisplay.value
+        .replace(/\./g, "")
+        .replace(/[^0-9]/g, "");
+      capitalReal.value = raw;
+      // Reformatear con puntos de miles
+      if (raw) {
+        capitalDisplay.value = parseInt(raw).toLocaleString("es-CL");
+      }
+      calc();
+    });
+
+    // Evitar que el cursor salte al formatear
+    capitalDisplay.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" || e.key === "Delete") {
+        // permitir borrado normal, se reformatea en input
+      }
+    });
+
+    // --- Slider ↔ Input tasa ---
+    function updateSliderTrack(val) {
+      const pct = ((Math.min(Math.max(val, 1), 10) - 1) / 9) * 100;
+      tasaSlider.style.background = `linear-gradient(to right, #3b82f6 ${pct}%, #1e293b ${pct}%)`;
+    }
+
+    tasaSlider.addEventListener("input", () => {
+      const val = parseFloat(tasaSlider.value);
+      tasaInput.value = val.toFixed(1);
+      updateSliderTrack(val);
+      calc();
+    });
+
+    tasaInput.addEventListener("input", () => {
+      const val = parseFloat(tasaInput.value);
+      if (!isNaN(val) && val >= 1 && val <= 10) {
+        tasaSlider.value = val;
+        updateSliderTrack(val);
+      }
+      calc();
+    });
+
+    // --- Toggle reinvertir ---
+    reinvertirBtn.addEventListener("click", () => {
+      reinvertir = !reinvertir;
+      reinvertirBtn.setAttribute("aria-pressed", reinvertir);
+      if (reinvertir) {
+        toggleDot.style.transform = "translateX(28px)";
+        toggleDot.style.background = "#3b82f6";
+        reinvertirBtn.style.borderColor = "rgba(59,130,246,0.5)";
+      } else {
+        toggleDot.style.transform = "translateX(0)";
+        toggleDot.style.background = "#64748b";
+        reinvertirBtn.style.borderColor = "rgba(255,255,255,0.1)";
+      }
+      calc();
+    });
+
+    mesesInput.addEventListener("input", calc);
+
+    // --- Cálculo principal ---
+    function calc() {
+      const capital = parseFloat(capitalReal.value);
+      const tasaAnual = parseFloat(tasaInput.value) / 100;
+      const meses = parseInt(mesesInput.value);
+
+      if (
+        !capital ||
+        capital <= 0 ||
+        !tasaAnual ||
+        tasaAnual <= 0 ||
+        !meses ||
+        meses <= 0
+      ) {
+        resultadoBox.classList.add("hidden");
+        seccionTabla.classList.add("hidden");
+        return;
+      }
+
+      const tasaMensual = tasaAnual / 12;
+      const filas = [];
+      let saldo = capital;
+
+      for (let m = 1; m <= meses; m++) {
+        // Sin reinvertir: interés siempre sobre el capital original (simple)
+        // Con reinvertir: interés sobre el saldo acumulado (compuesto)
+        const interesMes = reinvertir
+          ? saldo * tasaMensual
+          : capital * tasaMensual;
+        saldo = saldo + interesMes;
+        filas.push({ mes: m, interesMes, saldo });
+      }
+
+      const totalFinal = filas[filas.length - 1].saldo;
+      const totalIntereses = totalFinal - capital;
+      const pctIntereses = (totalIntereses / totalFinal) * 100;
+
+      // Resultado
+      resultadoBox.classList.remove("hidden");
+      resTotal.innerText = fmt(totalFinal);
+      resCapital.innerText = fmt(capital);
+      resIntereses.innerText = "+" + fmt(totalIntereses);
+      barCapital.style.width = (100 - pctIntereses).toFixed(1) + "%";
+      barIntereses.style.width = pctIntereses.toFixed(1) + "%";
+      pctLabel.innerText = pctIntereses.toFixed(1) + "% intereses";
+
+      // Tabla
+      seccionTabla.classList.remove("hidden");
+      const mostrarTabla =
+        filas.length > 48
+          ? filas.filter(
+              (_, i) =>
+                i % Math.ceil(filas.length / 24) === 0 ||
+                i === filas.length - 1,
+            )
+          : filas;
+
+      tablaBody.innerHTML = mostrarTabla
+        .map(
+          (f, i) => `
+        <tr class="border-b border-white/5 ${i % 2 === 0 ? "" : "bg-white/[0.02]"}">
+          <td class="py-2 px-4 text-slate-400">Mes ${f.mes}</td>
+          <td class="py-2 px-4 text-right text-green-400">+${fmt(f.interesMes)}</td>
+          <td class="py-2 px-4 text-right text-slate-200">${fmt(f.saldo)}</td>
+        </tr>
+      `,
+        )
+        .join("");
+    }
+
+    // --- Ejemplos rápidos ---
+    document.addEventListener("click", (e) => {
+      const row = e.target.closest(".quick-row");
+      if (!row) return;
+      const capital = row.getAttribute("data-capital");
+      const meses = row.getAttribute("data-meses");
+      // Poner capital formateado
+      capitalDisplay.value = parseInt(capital).toLocaleString("es-CL");
+      capitalReal.value = capital;
+      mesesInput.value = meses;
+      // Tasa 5%
+      tasaInput.value = "5.0";
+      tasaSlider.value = "5";
+      updateSliderTrack(5);
+      calc();
+      // Scroll suave al resultado
+      resultadoBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    // --- Tabs explicación ---
+    function activateTab(tab) {
+      const isShort = tab === "short";
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort.addEventListener("click", () => activateTab("short"));
+    tabFull.addEventListener("click", () => activateTab("full"));
+    activateTab("short");
+    updateSliderTrack(5);
+  });
+</script>

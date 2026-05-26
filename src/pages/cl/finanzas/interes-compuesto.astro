@@ -1,0 +1,415 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+---
+
+<BaseLayout title="Calculadora de Interés Compuesto | Chile">
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Qué es el interés compuesto?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "El interés compuesto es cuando los intereses generados se suman al capital y a su vez generan más intereses. Es decir, ganas intereses sobre los intereses, lo que acelera el crecimiento del dinero con el tiempo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo se calcula el interés compuesto?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La fórmula es: Monto final = Capital × (1 + tasa/n)^(n×t), donde tasa es la tasa de interés anual, n es la frecuencia de capitalización por año y t es el tiempo en años."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cuál es la diferencia entre interés simple e interés compuesto?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "En el interés simple, los intereses se calculan siempre sobre el capital inicial. En el interés compuesto, los intereses se suman al capital y generan nuevos intereses, haciendo que el dinero crezca más rápido."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Con qué frecuencia conviene capitalizar los intereses?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Mientras más frecuente sea la capitalización (mensual vs anual, por ejemplo), mayor será el monto final. Sin embargo, la diferencia entre capitalización mensual y diaria es pequeña para tasas habituales."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Interés Compuesto
+    </h1>
+
+    <p class="mt-2 text-slate-400">
+      Calcula cuánto crece tu dinero con el poder del interés compuesto.
+    </p>
+
+    <!-- Calculadora -->
+    <div
+      class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5 space-y-4"
+    >
+      <!-- Capital inicial -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1"
+          >Capital inicial (CLP)</label
+        >
+        <input
+          id="capital"
+          type="number"
+          min="0"
+          step="1000"
+          placeholder="Ej: 1000000"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500"
+        />
+      </div>
+
+      <!-- Tasa anual -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1"
+          >Tasa de interés anual (%)</label
+        >
+        <input
+          id="tasa"
+          type="number"
+          min="0"
+          step="0.1"
+          placeholder="Ej: 5"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500"
+        />
+      </div>
+
+      <!-- Período -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1">Período (años)</label>
+        <input
+          id="anios"
+          type="number"
+          min="1"
+          step="1"
+          placeholder="Ej: 10"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500"
+        />
+      </div>
+
+      <!-- Frecuencia de capitalización -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1"
+          >Frecuencia de capitalización</label
+        >
+        <select
+          id="frecuencia"
+          class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500"
+        >
+          <option value="1">Anual</option>
+          <option value="2">Semestral</option>
+          <option value="4">Trimestral</option>
+          <option value="12" selected>Mensual</option>
+          <option value="365">Diaria</option>
+        </select>
+      </div>
+
+      <!-- Resultado -->
+      <div
+        class="mt-2 p-4 rounded-lg border border-white/10 bg-[#070b16] space-y-3"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-slate-400">Monto final</span>
+          <div class="flex items-center gap-2">
+            <span id="resultTotal" class="text-2xl text-white">—</span>
+            <button
+              id="copyBtn"
+              class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition text-sm"
+              >Copiar</button
+            >
+          </div>
+        </div>
+        <div class="border-t border-white/5 pt-3 flex flex-col gap-1">
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-500">Capital inicial</span>
+            <span id="resultCapital" class="text-slate-300">—</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-500">Intereses ganados</span>
+            <span id="resultIntereses" class="text-green-400">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ejemplos rápidos -->
+    <section class="mt-6">
+      <h2 class="text-white font-semibold text-base mb-2">Ejemplos comunes</h2>
+      <p class="text-slate-500 text-xs mb-4">
+        Simulaciones a tasa 5% anual, capitalización mensual. Haz clic para usar
+        los valores.
+      </p>
+
+      <div class="space-y-1">
+        {
+          [
+            { capital: 100000, anios: 5 },
+            { capital: 500000, anios: 5 },
+            { capital: 1000000, anios: 10 },
+            { capital: 5000000, anios: 10 },
+            { capital: 10000000, anios: 20 },
+            { capital: 50000000, anios: 20 },
+          ].map(({ capital, anios }) => {
+            const n = 12;
+            const r = 5 / 100;
+            const total = capital * Math.pow(1 + r / n, n * anios);
+            const intereses = total - capital;
+            return (
+              <button
+                class="quick-row w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm"
+                data-capital={capital}
+                data-tasa="5"
+                data-anios={anios}
+                data-frecuencia="12"
+                type="button"
+              >
+                <span class="text-slate-200">
+                  ${capital.toLocaleString("es-CL")} · {anios} años
+                </span>
+                <span class="text-slate-400">
+                  → ${Math.round(total).toLocaleString("es-CL")}
+                  <span class="text-green-400 ml-1 text-xs">
+                    +${Math.round(intereses).toLocaleString("es-CL")}
+                  </span>
+                </span>
+              </button>
+            );
+          })
+        }
+      </div>
+
+      <div class="sr-only">
+        <p>
+          Calculadora de interés compuesto en pesos chilenos (CLP). Permite
+          calcular el monto final de una inversión ingresando capital inicial,
+          tasa de interés anual, número de años y frecuencia de capitalización.
+        </p>
+        <p>
+          Ejemplo: $1.000.000 a una tasa del 5% anual durante 10 años con
+          capitalización mensual resulta en aproximadamente $1.647.009, con
+          intereses de $647.009.
+        </p>
+        <p>
+          Ejemplo: $500.000 a una tasa del 5% anual durante 5 años con
+          capitalización mensual resulta en aproximadamente $641.335, con
+          intereses de $141.335.
+        </p>
+        <p>
+          Útil para calcular el crecimiento de ahorros, depósitos a plazo,
+          fondos de inversión y otros instrumentos financieros en Chile.
+        </p>
+        <p>
+          La fórmula del interés compuesto es: Monto final = Capital × (1 +
+          tasa/n)^(n×t)
+        </p>
+      </div>
+    </section>
+
+    <!-- Explicación -->
+    <section class="mt-6 text-slate-300 leading-relaxed text-sm">
+      <h2 class="text-white font-semibold text-lg mb-4">
+        ¿Qué es el interés compuesto?
+      </h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+          id="tabShort"
+          class="px-3 py-2 rounded-lg border border-white/10 bg-white/10 text-white text-xs font-medium transition"
+          type="button"
+        >
+          En pocas palabras
+        </button>
+        <button
+          id="tabFull"
+          class="px-3 py-2 rounded-lg border border-white/10 text-slate-300 text-xs font-medium hover:bg-white/5 transition"
+          type="button"
+        >
+          Explicación completa
+        </button>
+      </div>
+
+      <div id="contentShort">
+        <p>
+          El interés compuesto es cuando los intereses que ganas se suman a tu
+          capital y empiezan a generar más intereses. Es decir, tu dinero crece
+          sobre sí mismo. Con el tiempo, este efecto se acelera — es por eso que
+          se dice que el interés compuesto es la "octava maravilla del mundo".
+        </p>
+      </div>
+
+      <div id="contentFull" class="hidden">
+        <p>
+          El interés compuesto es el mecanismo por el cual los intereses
+          generados en un período se agregan al capital, de modo que en el
+          siguiente período los intereses se calculan sobre un capital mayor. A
+          diferencia del interés simple (donde los intereses siempre se calculan
+          sobre el capital inicial), el interés compuesto crece de forma
+          exponencial.
+        </p>
+        <p class="mt-3">
+          La fórmula es: <strong class="text-white"
+            >Monto = Capital × (1 + tasa/n)^(n×t)</strong
+          >, donde <em>tasa</em> es la tasa anual expresada como decimal, <em
+            >n</em
+          > es la cantidad de veces que se capitaliza por año y <em>t</em> es el tiempo
+          en años.
+        </p>
+        <p class="mt-3">
+          La frecuencia de capitalización importa: capitalizar mensualmente
+          produce un monto mayor que capitalizar anualmente con la misma tasa
+          nominal. Sin embargo, la diferencia entre mensual y diaria es mínima
+          para tasas habituales.
+        </p>
+        <p class="mt-3">
+          En Chile, el interés compuesto es relevante en depósitos a plazo,
+          fondos mutuos, cuentas de ahorro y fondos de pensiones (AFP). A largo
+          plazo, incluso una diferencia pequeña en la tasa puede significar una
+          gran diferencia en el monto final.
+        </p>
+      </div>
+
+      <h2 class="text-white font-semibold text-lg mt-8 mb-2">
+        ¿Cuánto más rinde el interés compuesto vs el simple?
+      </h2>
+      <p>
+        Con interés simple, $1.000.000 al 5% anual durante 10 años genera
+        $500.000 de interés (total: $1.500.000). Con interés compuesto mensual,
+        el mismo capital genera aproximadamente $647.009 (total: $1.647.009). La
+        diferencia aumenta significativamente a mayor plazo.
+      </p>
+
+      <div class="sr-only">
+        <p>
+          Diferencia entre interés simple e interés compuesto: el interés
+          compuesto reinvierte los intereses generados, produciendo un
+          crecimiento exponencial del capital.
+        </p>
+        <p>
+          Herramienta útil para planificación financiera personal en Chile:
+          calcular el crecimiento de ahorros en depósitos a plazo, fondos mutuos
+          o cuentas de ahorro.
+        </p>
+        <p>
+          La regla del 72: divides 72 entre la tasa de interés anual y obtienes
+          el número aproximado de años que tarda en duplicarse una inversión con
+          interés compuesto.
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const capitalInput = document.getElementById("capital");
+    const tasaInput = document.getElementById("tasa");
+    const aniosInput = document.getElementById("anios");
+    const frecuenciaSelect = document.getElementById("frecuencia");
+    const resultTotal = document.getElementById("resultTotal");
+    const resultCapital = document.getElementById("resultCapital");
+    const resultIntereses = document.getElementById("resultIntereses");
+    const copyBtn = document.getElementById("copyBtn");
+    const tabShort = document.getElementById("tabShort");
+    const tabFull = document.getElementById("tabFull");
+    const contentShort = document.getElementById("contentShort");
+    const contentFull = document.getElementById("contentFull");
+
+    function formatCLP(value) {
+      return (
+        "$" +
+        Math.round(value).toLocaleString("es-CL", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        })
+      );
+    }
+
+    function calc() {
+      const capital = parseFloat(capitalInput.value);
+      const tasa = parseFloat(tasaInput.value) / 100;
+      const anios = parseFloat(aniosInput.value);
+      const n = parseFloat(frecuenciaSelect.value);
+
+      if (
+        !capital ||
+        !tasa ||
+        !anios ||
+        capital <= 0 ||
+        tasa <= 0 ||
+        anios <= 0
+      ) {
+        resultTotal.innerText = "—";
+        resultCapital.innerText = "—";
+        resultIntereses.innerText = "—";
+        return;
+      }
+
+      const total = capital * Math.pow(1 + tasa / n, n * anios);
+      const intereses = total - capital;
+
+      resultTotal.innerText = formatCLP(total);
+      resultCapital.innerText = formatCLP(capital);
+      resultIntereses.innerText = "+" + formatCLP(intereses);
+    }
+
+    function activateTab(tab) {
+      const isShort = tab === "short";
+      contentShort.classList.toggle("hidden", !isShort);
+      contentFull.classList.toggle("hidden", isShort);
+      tabShort.classList.toggle("bg-white/10", isShort);
+      tabShort.classList.toggle("text-white", isShort);
+      tabShort.classList.toggle("text-slate-300", !isShort);
+      tabFull.classList.toggle("bg-white/10", !isShort);
+      tabFull.classList.toggle("text-white", !isShort);
+      tabFull.classList.toggle("text-slate-300", isShort);
+    }
+
+    tabShort?.addEventListener("click", () => activateTab("short"));
+    tabFull?.addEventListener("click", () => activateTab("full"));
+
+    [capitalInput, tasaInput, aniosInput, frecuenciaSelect].forEach((el) =>
+      el?.addEventListener("input", calc),
+    );
+
+    copyBtn?.addEventListener("click", async () => {
+      const text = resultTotal.innerText;
+      if (!text || text === "—") return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.innerText = "Copiado ✓";
+        setTimeout(() => {
+          copyBtn.innerText = "Copiar";
+        }, 1200);
+      } catch (err) {
+        console.error("No se pudo copiar:", err);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      const row = e.target.closest(".quick-row");
+      if (!row) return;
+      capitalInput.value = row.getAttribute("data-capital");
+      tasaInput.value = row.getAttribute("data-tasa");
+      aniosInput.value = row.getAttribute("data-anios");
+      frecuenciaSelect.value = row.getAttribute("data-frecuencia");
+      calc();
+    });
+
+    activateTab("short");
+  });
+</script>
