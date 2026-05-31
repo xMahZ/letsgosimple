@@ -1,0 +1,1124 @@
+---
+import BaseLayout from "@/layouts/baselayout.astro";
+---
+
+<style is:global>
+  @keyframes shimmer {
+    0% {
+      box-shadow: 0 0 0px 0px rgba(251, 191, 36, 0);
+      background-color: #78350f;
+    }
+    50% {
+      box-shadow: 0 0 6px 2px rgba(251, 191, 36, 0.7);
+      background-color: #fbbf24;
+    }
+    100% {
+      box-shadow: 0 0 0px 0px rgba(251, 191, 36, 0);
+      background-color: #d97706;
+    }
+  }
+  @keyframes pulse-gold {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.15);
+    }
+  }
+  .cell-normal {
+    background-color: #1e293b;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+  }
+  .cell-normal.filled {
+    background-color: #3b82f6;
+  }
+  .cell-special {
+    background-color: #1e293b;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+  }
+  .cell-special.filled {
+    background-color: #d97706;
+    animation:
+      pulse-gold 1.4s ease-in-out infinite,
+      shimmer 1.4s ease-in-out infinite;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 4px;
+    background: #1e293b;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #0f172a;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #0f172a;
+  }
+
+  .tooltip-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .tooltip-wrap .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    background: #0f172a;
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    padding: 6px 10px;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: opacity 0.15s;
+    pointer-events: none;
+  }
+  .tooltip-wrap:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* SVG tooltip */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+  * {
+    box-sizing: border-box;
+  }
+
+  #svg-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #0f172a;
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    display: none;
+    white-space: nowrap;
+    z-index: 20;
+    max-width: calc(100vw - 2rem);
+  }
+
+  /* Celebration overlay */
+  #celebration {
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<BaseLayout title="Calculadora de Álbum de Láminas">
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Cuántos sobres necesito para completar un álbum?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Depende del número de láminas, el precio del sobre y si intercambias con otras personas. Esta calculadora simula 10.000 casos para darte una estimación realista."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Qué son las láminas especiales?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Las láminas especiales son las holográficas o doradas que suelen venir en menor proporción dentro de los sobres y son más difíciles de conseguir."
+            }
+          }
+        ]
+      }
+    </script>
+  </Fragment>
+
+  <main class="max-w-2xl mx-auto px-4 py-12 w-full min-w-0">
+    <h1 class="text-3xl font-semibold tracking-tight text-white">
+      Simulador de Álbum
+    </h1>
+    <p class="mt-2 text-slate-400">
+      Simula cuántos sobres necesitarás para completar tu álbum de láminas.
+    </p>
+
+    <!-- ─── INPUTS ─────────────────────────────────────────── -->
+    <section
+      class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5 space-y-5 min-w-0"
+    >
+      <!-- Row: láminas normales + especiales -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-slate-300 mb-1" for="inp-normales">
+            Láminas normales
+          </label>
+          <input
+            id="inp-normales"
+            type="number"
+            min="1"
+            value="180"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div>
+          <label
+            class="text-sm text-slate-300 mb-1 flex items-center gap-1"
+            for="inp-especiales"
+          >
+            Láminas especiales
+            <span class="tooltip-wrap cursor-help">
+              <span
+                class="text-slate-500 text-xs border border-white/10 rounded-full w-4 h-4 inline-flex items-center justify-center"
+                >?</span
+              >
+              <span class="tooltip-text"
+                >Las láminas holográficas o doradas que suelen ser más difíciles
+                de conseguir.</span
+              >
+            </span>
+          </label>
+          <input
+            id="inp-especiales"
+            type="number"
+            min="0"
+            value="20"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+      </div>
+
+      <!-- Row: láminas por sobre + precio sobre -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-slate-300 mb-1" for="inp-por-sobre">
+            Láminas por sobre
+          </label>
+          <input
+            id="inp-por-sobre"
+            type="number"
+            min="1"
+            value="5"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 mb-1" for="inp-precio">
+            Precio del sobre (CLP)
+          </label>
+          <input
+            id="inp-precio"
+            type="number"
+            min="1"
+            value="500"
+            class="w-full px-4 py-3 rounded-lg bg-[#070b16] border border-white/10 text-white outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+      </div>
+
+      <!-- Slider: especiales por sobre -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-sm text-slate-300" for="sl-esp-sobre">
+            Especiales por sobre (promedio)
+          </label>
+          <span id="val-esp-sobre" class="text-blue-400 font-medium text-sm"
+            >1</span
+          >
+        </div>
+        <input
+          id="sl-esp-sobre"
+          type="range"
+          min="0"
+          max="5"
+          step="1"
+          value="1"
+          class="w-full"
+        />
+        <div class="flex justify-between text-xs text-slate-500 mt-1">
+          <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span
+          ><span>5</span>
+        </div>
+      </div>
+
+      <!-- Slider: personas que intercambian -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-sm text-slate-300" for="sl-personas">
+            Personas que intercambian
+          </label>
+          <span id="val-personas" class="text-blue-400 font-medium text-sm"
+            >Solo</span
+          >
+        </div>
+        <input
+          id="sl-personas"
+          type="range"
+          min="1"
+          max="5"
+          step="1"
+          value="1"
+          class="w-full"
+        />
+        <div class="flex justify-between text-xs text-slate-500 mt-1">
+          <span>1</span><span>3</span><span>5</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SECCIÓN CENTRAL: ÁLBUM ANIMADO ────────────────── -->
+    <section class="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
+      <!-- Contador en tiempo real -->
+      <div id="live-counter" class="text-sm text-slate-400 mb-4 min-h-[1.5rem]">
+        Configura el álbum y pulsa "Abrir sobres"
+      </div>
+
+      <!-- Controles de velocidad + botones -->
+      <div class="flex flex-wrap items-center gap-3 mb-4">
+        <div class="flex items-center gap-2 text-sm text-slate-400">
+          <span>Velocidad:</span>
+          <button
+            id="btn-lento"
+            data-ms="50"
+            class="speed-btn px-3 py-1 rounded-lg border border-white/10 text-slate-300 text-xs hover:bg-white/5 transition"
+            >Lento</button
+          >
+          <button
+            id="btn-normal"
+            data-ms="16"
+            class="speed-btn px-3 py-1 rounded-lg border border-white/10 bg-white/10 text-white text-xs transition"
+            >Normal</button
+          >
+          <button
+            id="btn-rapido"
+            data-ms="1"
+            class="speed-btn px-3 py-1 rounded-lg border border-white/10 text-slate-300 text-xs hover:bg-white/5 transition"
+            >Rápido</button
+          >
+        </div>
+        <div class="ml-auto flex gap-2">
+          <button
+            id="btn-abrir"
+            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition"
+          >
+            ▶ Abrir sobres
+          </button>
+          <button
+            id="btn-reset"
+            class="px-4 py-2 rounded-lg border border-white/10 text-slate-300 hover:bg-white/5 text-sm transition"
+          >
+            ↺ Reiniciar
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid de láminas -->
+      <div id="album-grid-wrap" class="space-y-3">
+        <div>
+          <p class="text-xs text-slate-500 mb-2">Láminas normales</p>
+          <div id="grid-normales" class="flex flex-wrap gap-[3px]"></div>
+        </div>
+        <div id="especiales-section" class="hidden">
+          <p class="text-xs text-slate-500 mb-2 mt-2">Láminas especiales ✨</p>
+          <div id="grid-especiales" class="flex flex-wrap gap-[3px]"></div>
+        </div>
+      </div>
+
+      <!-- Celebración -->
+      <div
+        id="celebration"
+        class="hidden mt-6 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-center"
+      >
+        <div class="text-2xl mb-1">🎉</div>
+        <p class="text-white font-semibold text-base">¡Álbum completado!</p>
+        <p id="celebration-text" class="text-slate-300 text-sm mt-1"></p>
+      </div>
+    </section>
+
+    <!-- ─── OUTPUTS ────────────────────────────────────────── -->
+    <section id="outputs-section" class="hidden mt-6 space-y-4">
+      <!-- Cards resumen -->
+      <div class="grid grid-cols-3 gap-3">
+        <div
+          class="p-4 rounded-xl border border-white/10 bg-white/5 text-center"
+        >
+          <div class="text-2xl mb-1">📦</div>
+          <div class="text-xs text-slate-400">Sobres usados</div>
+          <div
+            id="out-sobres"
+            class="text-lg sm:text-xl text-white font-semibold mt-1"
+          >
+            —
+          </div>
+          <div id="out-sobres-ctx" class="text-xs text-slate-500 mt-1"></div>
+        </div>
+        <div
+          class="p-4 rounded-xl border border-white/10 bg-white/5 text-center"
+        >
+          <div class="text-2xl mb-1">💰</div>
+          <div class="text-xs text-slate-400">Gasto estimado</div>
+          <div
+            id="out-gasto"
+            class="text-lg sm:text-xl text-white font-semibold mt-1"
+          >
+            —
+          </div>
+        </div>
+        <div
+          class="p-4 rounded-xl border border-white/10 bg-white/5 text-center"
+        >
+          <div class="text-2xl mb-1">🔁</div>
+          <div class="text-xs text-slate-400">Repetidas</div>
+          <div
+            id="out-repetidas"
+            class="text-lg sm:text-xl text-white font-semibold mt-1"
+          >
+            —
+          </div>
+        </div>
+      </div>
+
+      <!-- Curva de probabilidad -->
+      <div class="p-4 rounded-xl border border-white/10 bg-white/5">
+        <h2 id="mc-title" class="text-white font-semibold text-sm mb-1">
+          Curva de probabilidad
+        </h2>
+        <p class="text-slate-500 text-xs mb-1">
+          ¿Con cuántos sobres completan los coleccionistas?
+        </p>
+        <p id="mc-variacion-ctx" class="hidden text-xs mb-4 text-slate-400"></p>
+
+        <div
+          id="mc-running"
+          class="text-slate-400 text-sm text-center py-8 hidden"
+        >
+          ⏳ Calculando simulación Montecarlo…
+        </div>
+
+        <div id="chart-wrap" class="relative hidden overflow-x-hidden">
+          <svg
+            id="prob-chart"
+            viewBox="0 0 600 260"
+            class="w-full"
+            style="overflow:hidden"></svg>
+          <div id="svg-tooltip"></div>
+        </div>
+
+        <!-- Leyenda percentiles -->
+        <div
+          id="chart-legend"
+          class="hidden mt-4 flex flex-wrap gap-4 text-xs text-slate-400"
+        >
+          <span
+            ><span
+              class="inline-block w-3 h-[2px] bg-yellow-400 mr-1 align-middle"
+            ></span>P50: la mitad completa aquí</span
+          >
+          <span
+            ><span
+              class="inline-block w-3 h-[2px] bg-orange-400 mr-1 align-middle"
+            ></span>P90: 9 de cada 10 completan aquí</span
+          >
+          <span
+            ><span class="inline-block w-3 h-[2px] bg-red-400 mr-1 align-middle"
+            ></span>P99: casi todos completan aquí</span
+          >
+        </div>
+
+        <!-- Tabla de percentiles -->
+        <div
+          id="pct-table"
+          class="hidden mt-4 rounded-xl border border-white/10 overflow-x-auto"
+        >
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/10 bg-white/5">
+                <th class="py-2 px-4 text-left font-normal text-slate-400"
+                  >Percentil</th
+                >
+                <th
+                  class="py-2 px-4 text-left font-normal text-slate-400 hidden sm:table-cell"
+                  >Significado</th
+                >
+                <th class="py-2 px-4 text-right font-normal text-slate-400"
+                  >Sobres</th
+                >
+                <th class="py-2 px-4 text-right font-normal text-slate-400"
+                  >Gasto</th
+                >
+              </tr>
+            </thead>
+            <tbody id="pct-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    // ── Estado global ──────────────────────────────────────────
+    let animInterval = null;
+    let speedMs = 16;
+    let sobresAbiertos = 0;
+    let repetidas = 0;
+    let albumNormal = new Set();
+    let albumEspecial = new Set();
+    let totalLaminasObtenidas = 0; // incluyendo repetidas
+
+    // ── Helpers UI ─────────────────────────────────────────────
+    const $ = (id) => document.getElementById(id);
+
+    function fmtCLP(n) {
+      return "$" + Math.round(n).toLocaleString("es-CL");
+    }
+    function fmtNum(n) {
+      return Math.round(n).toLocaleString("es-CL");
+    }
+
+    // ── Leer inputs ────────────────────────────────────────────
+    function getInputs() {
+      const normales = Math.max(1, parseInt($("inp-normales").value) || 180);
+      const especiales = Math.max(0, parseInt($("inp-especiales").value) || 0);
+      const porSobre = Math.max(1, parseInt($("inp-por-sobre").value) || 5);
+      const espPorSobre = Math.min(
+        porSobre,
+        parseInt($("sl-esp-sobre").value) || 0,
+      );
+      const precio = Math.max(1, parseInt($("inp-precio").value) || 500);
+      const personas = parseInt($("sl-personas").value) || 1;
+      return { normales, especiales, porSobre, espPorSobre, precio, personas };
+    }
+
+    // ── Sliders labels ─────────────────────────────────────────
+    $("sl-esp-sobre").addEventListener("input", (e) => {
+      $("val-esp-sobre").textContent = e.target.value;
+    });
+    $("sl-personas").addEventListener("input", (e) => {
+      const v = parseInt(e.target.value);
+      $("val-personas").textContent = v === 1 ? "Solo" : `${v} personas`;
+    });
+
+    // ── Velocidad ──────────────────────────────────────────────
+    document.querySelectorAll(".speed-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        speedMs = parseInt(btn.dataset.ms);
+        document.querySelectorAll(".speed-btn").forEach((b) => {
+          b.classList.remove("bg-white/10", "text-white");
+          b.classList.add("text-slate-300");
+        });
+        btn.classList.add("bg-white/10", "text-white");
+        btn.classList.remove("text-slate-300");
+      });
+    });
+
+    // ── Construir grids ────────────────────────────────────────
+    function buildGrids() {
+      const { normales, especiales } = getInputs();
+      const gN = $("grid-normales");
+      const gE = $("grid-especiales");
+      gN.innerHTML = "";
+      gE.innerHTML = "";
+
+      const cellSize = window.innerWidth < 640 ? "6px" : "10px";
+
+      for (let i = 0; i < normales; i++) {
+        const c = document.createElement("div");
+        c.id = `cn-${i}`;
+        c.className = "cell-normal rounded-sm";
+        c.style.width = cellSize;
+        c.style.height = cellSize;
+        c.style.flexShrink = "0";
+        gN.appendChild(c);
+      }
+
+      if (especiales > 0) {
+        $("especiales-section").classList.remove("hidden");
+        for (let i = 0; i < especiales; i++) {
+          const c = document.createElement("div");
+          c.id = `ce-${i}`;
+          c.className = "cell-special rounded-sm";
+          c.style.width = cellSize;
+          c.style.height = cellSize;
+          c.style.flexShrink = "0";
+          gE.appendChild(c);
+        }
+      } else {
+        $("especiales-section").classList.add("hidden");
+      }
+    }
+
+    // ── Colorear celda ─────────────────────────────────────────
+    function colorCell(idx, tipo) {
+      const el = $(tipo === "normal" ? `cn-${idx}` : `ce-${idx}`);
+      if (el) el.classList.add("filled");
+    }
+
+    // ── Lógica un sobre ────────────────────────────────────────
+    function abrirUnSobre(normales, especiales, porSobre, espPorSobre) {
+      const normPorSobre = porSobre - espPorSobre;
+      let nuevasN = 0,
+        nuevasE = 0,
+        repN = 0,
+        repE = 0;
+
+      for (let i = 0; i < normPorSobre; i++) {
+        const lam = Math.floor(Math.random() * normales);
+        if (!albumNormal.has(lam)) {
+          albumNormal.add(lam);
+          colorCell(lam, "normal");
+          nuevasN++;
+        } else repN++;
+      }
+      for (let i = 0; i < espPorSobre; i++) {
+        if (especiales === 0) break;
+        const lam = Math.floor(Math.random() * especiales);
+        if (!albumEspecial.has(lam)) {
+          albumEspecial.add(lam);
+          colorCell(lam, "especial");
+          nuevasE++;
+        } else repE++;
+      }
+      return { nuevas: nuevasN + nuevasE, rep: repN + repE };
+    }
+
+    // ── Check completo ─────────────────────────────────────────
+    function isComplete(normales, especiales) {
+      return (
+        albumNormal.size >= normales &&
+        (especiales === 0 || albumEspecial.size >= especiales)
+      );
+    }
+
+    // ── Animación principal ────────────────────────────────────
+    function iniciarAnimacion() {
+      if (animInterval) return;
+      const { normales, especiales, porSobre, espPorSobre, precio } =
+        getInputs();
+      buildGrids();
+      resetState();
+
+      $("celebration").classList.add("hidden");
+      $("outputs-section").classList.add("hidden");
+      $("btn-abrir").disabled = true;
+      $("btn-abrir").classList.add("opacity-50");
+
+      function tick() {
+        sobresAbiertos++;
+        const { nuevas, rep } = abrirUnSobre(
+          normales,
+          especiales,
+          porSobre,
+          espPorSobre,
+        );
+        repetidas += rep;
+        totalLaminasObtenidas += nuevas + rep;
+
+        const total = normales + especiales;
+        const obtenidas = albumNormal.size + albumEspecial.size;
+        $("live-counter").textContent =
+          `Sobre #${fmtNum(sobresAbiertos)} | Nuevas: ${fmtNum(obtenidas)} de ${fmtNum(total)} | Repetidas: ${fmtNum(repetidas)}`;
+
+        if (isComplete(normales, especiales)) {
+          clearInterval(animInterval);
+          animInterval = null;
+          mostrarCompletado(normales, especiales, precio);
+        }
+      }
+
+      animInterval = setInterval(tick, speedMs);
+    }
+
+    function mostrarCompletado(normales, especiales, precio) {
+      const gasto = sobresAbiertos * precio;
+      $("celebration-text").textContent =
+        `${fmtNum(sobresAbiertos)} sobres · ${fmtCLP(gasto)} · ${fmtNum(repetidas)} repetidas`;
+      $("celebration").classList.remove("hidden");
+
+      $("out-sobres").textContent = fmtNum(sobresAbiertos);
+      $("out-gasto").textContent = fmtCLP(gasto);
+      $("out-repetidas").textContent = fmtNum(repetidas);
+      $("outputs-section").classList.remove("hidden");
+
+      $("btn-abrir").disabled = false;
+      $("btn-abrir").classList.remove("opacity-50");
+
+      $("mc-running").classList.remove("hidden");
+      $("chart-wrap").classList.add("hidden");
+      $("chart-legend").classList.add("hidden");
+
+      setTimeout(
+        () =>
+          correrMontecarlo(
+            normales,
+            especiales,
+            getInputs().porSobre,
+            getInputs().espPorSobre,
+            getInputs().personas,
+          ),
+        100,
+      );
+    }
+
+    function resetState() {
+      albumNormal = new Set();
+      albumEspecial = new Set();
+      sobresAbiertos = 0;
+      repetidas = 0;
+      totalLaminasObtenidas = 0;
+      $("live-counter").textContent = "Abriendo sobres…";
+    }
+
+    // ── Reset completo ─────────────────────────────────────────
+    function resetTodo() {
+      if (animInterval) {
+        clearInterval(animInterval);
+        animInterval = null;
+      }
+      albumNormal = new Set();
+      albumEspecial = new Set();
+      sobresAbiertos = 0;
+      repetidas = 0;
+      totalLaminasObtenidas = 0;
+      $("live-counter").textContent =
+        'Configura el álbum y pulsa "Abrir sobres"';
+      $("celebration").classList.add("hidden");
+      $("outputs-section").classList.add("hidden");
+      $("btn-abrir").disabled = false;
+      $("btn-abrir").classList.remove("opacity-50");
+      buildGrids();
+    }
+
+    // ── Botones ────────────────────────────────────────────────
+    $("btn-abrir").addEventListener("click", iniciarAnimacion);
+    $("btn-reset").addEventListener("click", resetTodo);
+
+    // ── Montecarlo en Web Worker (Blob) ───────────────────────
+    // Todo el código de simulación vive aquí como string y se
+    // inyecta en un Worker via URL.createObjectURL — sin archivo extra.
+    const WORKER_CODE = `
+    function simularColeccionistas(normales, especiales, porSobre, espPorSobre, personas) {
+      const normPorSobre = porSobre - espPorSobre;
+      const col = Array.from({length: personas}, () => ({
+        n: new Set(), e: new Set(),
+        rN: new Set(), rE: new Set(),
+      }));
+
+      function intercambiar(album, bolsa, total) {
+        if (total === 0) return;
+        for (let p = 0; p < personas; p++) {
+          if (col[p][bolsa].size === 0) continue;
+          const toRemove = [];
+          for (const lam of col[p][bolsa]) {
+            for (let q = 0; q < personas; q++) {
+              if (q !== p && !col[q][album].has(lam)) {
+                col[q][album].add(lam);
+                toRemove.push(lam);
+                break;
+              }
+            }
+          }
+          for (const lam of toRemove) col[p][bolsa].delete(lam);
+        }
+      }
+
+      let sobres = 0;
+      while (true) {
+        sobres++;
+        for (const c of col) {
+          for (let i = 0; i < normPorSobre; i++) {
+            const l = Math.floor(Math.random() * normales);
+            if (c.n.has(l)) c.rN.add(l); else c.n.add(l);
+          }
+          for (let i = 0; i < espPorSobre; i++) {
+            if (especiales === 0) break;
+            const l = Math.floor(Math.random() * especiales);
+            if (c.e.has(l)) c.rE.add(l); else c.e.add(l);
+          }
+        }
+        if (personas > 1) {
+          intercambiar('n', 'rN', normales);
+          if (especiales > 0) intercambiar('e', 'rE', especiales);
+        }
+        const ok = col.every(c =>
+          c.n.size >= normales && (especiales === 0 || c.e.size >= especiales)
+        );
+        if (ok) return sobres;
+        if (sobres > 100000) return sobres;
+      }
+    }
+
+    self.onmessage = function(e) {
+      const { normales, especiales, porSobre, espPorSobre, personas, N } = e.data;
+      const resultados = new Array(N);
+      for (let i = 0; i < N; i++) {
+        resultados[i] = simularColeccionistas(normales, especiales, porSobre, espPorSobre, personas);
+        // Reportar progreso cada 500 iteraciones
+        if (i % 500 === 0) self.postMessage({ tipo: 'progreso', completadas: i });
+      }
+      resultados.sort((a, b) => a - b);
+      self.postMessage({ tipo: 'resultado', resultados });
+    };
+  `;
+
+    let mcWorker = null;
+
+    function correrMontecarlo(
+      normales,
+      especiales,
+      porSobre,
+      espPorSobre,
+      personas,
+    ) {
+      const totalLaminas = normales + especiales;
+
+      let N;
+
+      if (personas === 1) {
+        if (totalLaminas <= 250) {
+          N = 10000;
+        } else if (totalLaminas <= 500) {
+          N = 5000;
+        } else if (totalLaminas <= 1000) {
+          N = 2500;
+        } else {
+          N = 1000;
+        }
+      } else if (personas === 2) {
+        if (totalLaminas <= 250) {
+          N = 5000;
+        } else if (totalLaminas <= 500) {
+          N = 2500;
+        } else if (totalLaminas <= 1000) {
+          N = 1000;
+        } else {
+          N = 500;
+        }
+      } else {
+        if (totalLaminas <= 250) {
+          N = 2500;
+        } else if (totalLaminas <= 500) {
+          N = 1000;
+        } else {
+          N = 500;
+        }
+      }
+
+      console.log(
+        `Montecarlo: ${N.toLocaleString("es-CL")} simulaciones (${personas} persona(s), ${totalLaminas} láminas)`,
+      );
+      const title = $("mc-title");
+
+      if (title) {
+        title.textContent = `Curva de probabilidad (Montecarlo · ${N.toLocaleString("es-CL")} simulaciones)`;
+      }
+      // Cancelar worker anterior si existe
+      if (mcWorker) {
+        mcWorker.terminate();
+        mcWorker = null;
+      }
+
+      // Crear worker desde Blob
+      const blob = new Blob([WORKER_CODE], { type: "application/javascript" });
+      const url = URL.createObjectURL(blob);
+      mcWorker = new Worker(url);
+      URL.revokeObjectURL(url); // liberar inmediatamente, el worker ya lo tiene
+
+      // Mostrar progreso
+      const mcRunning = $("mc-running");
+
+      mcWorker.onmessage = function (e) {
+        const { tipo, completadas, resultados } = e.data;
+
+        if (tipo === "progreso") {
+          const pct = Math.round((completadas / N) * 100);
+          if (mcRunning) mcRunning.textContent = `⏳ Calculando… ${pct}%`;
+          return;
+        }
+
+        // tipo === 'resultado'
+        mcWorker.terminate();
+        mcWorker = null;
+
+        const p = (pct) => resultados[Math.floor((pct * N) / 100)];
+        const percentiles = {
+          p25: p(25),
+          p50: p(50),
+          p75: p(75),
+          p90: p(90),
+          p99: p(99),
+        };
+
+        if (mcRunning) mcRunning.classList.add("hidden");
+
+        // Contextualizar la corrida animada vs el Montecarlo
+        const p50 = percentiles.p50;
+        const ctxEl = $("out-sobres-ctx");
+        const varEl = $("mc-variacion-ctx");
+        if (ctxEl) {
+          const diff = sobresAbiertos - p50;
+          const pct = Math.round((Math.abs(diff) / p50) * 100);
+          if (Math.abs(diff) <= 5) {
+            ctxEl.textContent = `≈ P50 (típico)`;
+            ctxEl.className = "text-xs text-slate-400 mt-1";
+          } else if (diff < 0) {
+            ctxEl.textContent = `${pct}% menos que el promedio 🍀`;
+            ctxEl.className = "text-xs text-green-400 mt-1";
+          } else {
+            ctxEl.textContent = `${pct}% más que el promedio`;
+            ctxEl.className = "text-xs text-orange-400 mt-1";
+          }
+        }
+        if (varEl) {
+          varEl.textContent = `La variación entre corridas es normal: el 50% de coleccionistas termina entre ${fmtNum(percentiles.p25)} y ${fmtNum(percentiles.p75)} sobres. Tu corrida (${fmtNum(sobresAbiertos)}) puede diferir bastante del promedio.`;
+          varEl.classList.remove("hidden");
+        }
+
+        dibujarCurva(resultados, percentiles);
+      };
+
+      mcWorker.onerror = function (err) {
+        console.error("Worker error:", err);
+        if (mcRunning) mcRunning.textContent = "⚠️ Error en la simulación";
+      };
+
+      mcWorker.postMessage({
+        normales,
+        especiales,
+        porSobre,
+        espPorSobre,
+        personas,
+        N,
+      });
+    }
+
+    // ── SVG Curva de probabilidad ──────────────────────────────
+    function dibujarCurva(resultados, pcts) {
+      const svg = $("prob-chart");
+      const W = 600,
+        H = 260;
+      // Padding generoso a la derecha para que los labels de P99 no se corten
+      const PAD = { top: 30, right: 10, bottom: 36, left: 46 };
+      const w = W - PAD.left - PAD.right;
+      const h = H - PAD.top - PAD.bottom;
+
+      const maxX = pcts.p99;
+      const N = resultados.length;
+
+      // Construir curva de distribución acumulada
+      const POINTS = 120;
+      const step = maxX / POINTS;
+      const pts = [];
+      let j = 0;
+      for (let k = 0; k <= POINTS; k++) {
+        const x = Math.round(k * step);
+        while (j < N && resultados[j] <= x) j++;
+        pts.push({ x, y: j / N });
+      }
+
+      function sx(x) {
+        return PAD.left + (x / maxX) * w;
+      }
+      function sy(y) {
+        return PAD.top + h - y * h;
+      }
+
+      // Generar path bezier
+      let d = `M ${sx(pts[0].x)} ${sy(pts[0].y)}`;
+      for (let i = 1; i < pts.length; i++) {
+        const prev = pts[i - 1],
+          curr = pts[i];
+        const cpx = (sx(prev.x) + sx(curr.x)) / 2;
+        d += ` C ${cpx} ${sy(prev.y)}, ${cpx} ${sy(curr.y)}, ${sx(curr.x)} ${sy(curr.y)}`;
+      }
+
+      // Área bajo la curva
+      let area =
+        d + ` L ${sx(pts[pts.length - 1].x)} ${sy(0)} L ${sx(0)} ${sy(0)} Z`;
+
+      // Ejes — solo 4 ticks en X para que no se amontonen en móvil
+      const xTicks = 4;
+      let axes = "";
+      for (let k = 0; k <= xTicks; k++) {
+        const xv = Math.round((k / xTicks) * maxX);
+        const px = sx(xv);
+        axes += `<line x1="${px}" y1="${PAD.top}" x2="${px}" y2="${PAD.top + h}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+        axes += `<text x="${px}" y="${PAD.top + h + 14}" fill="#64748b" font-size="9" text-anchor="middle">${fmtNum(xv)}</text>`;
+      }
+      const yTicks = [0, 0.25, 0.5, 0.75, 1];
+      for (const yv of yTicks) {
+        const py = sy(yv);
+        axes += `<line x1="${PAD.left}" y1="${py}" x2="${PAD.left + w}" y2="${py}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+        axes += `<text x="${PAD.left - 6}" y="${py + 4}" fill="#64748b" font-size="9" text-anchor="end">${Math.round(yv * 100)}%</text>`;
+      }
+
+      // Líneas percentiles — label encima dentro del área del gráfico
+      function vline(xv, color, label) {
+        const px = sx(xv);
+        // Si está muy a la derecha, poner label a la izquierda de la línea
+        const anchor = px > PAD.left + w * 0.85 ? "end" : "start";
+        const lx = anchor === "end" ? px - 3 : px + 3;
+        return `
+        <line x1="${px}" y1="${PAD.top}" x2="${px}" y2="${PAD.top + h}" stroke="${color}" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="${lx}" y="${PAD.top + 10}" fill="${color}" font-size="9" text-anchor="${anchor}" font-weight="600">${label}</text>
+        <text x="${lx}" y="${PAD.top + 21}" fill="${color}" font-size="8" text-anchor="${anchor}">${fmtNum(xv)}</text>
+      `;
+      }
+
+      svg.innerHTML = `
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02"/>
+        </linearGradient>
+        <clipPath id="chartClip">
+          <rect x="${PAD.left}" y="${PAD.top}" width="${w}" height="${h}"/>
+        </clipPath>
+      </defs>
+      ${axes}
+      <g clip-path="url(#chartClip)">
+        <path d="${area}" fill="url(#areaGrad)"/>
+        <path d="${d}" fill="none" stroke="#3b82f6" stroke-width="2"/>
+      </g>
+      ${vline(pcts.p50, "#facc15", "P50")}
+      ${vline(pcts.p90, "#fb923c", "P90")}
+      ${vline(pcts.p99, "#f87171", "P99")}
+    `;
+
+      // Invisible overlay para tooltip
+      const overlay = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "rect",
+      );
+      overlay.setAttribute("x", PAD.left);
+      overlay.setAttribute("y", PAD.top);
+      overlay.setAttribute("width", w);
+      overlay.setAttribute("height", h);
+      overlay.setAttribute("fill", "transparent");
+      svg.appendChild(overlay);
+
+      const tooltip = $("svg-tooltip");
+      const chartWrap = $("chart-wrap");
+
+      overlay.addEventListener("mousemove", (e) => {
+        const rect = svg.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const xVal = Math.round(
+          ((mx - PAD.left) / w) * maxX * (rect.width / W),
+        );
+        if (xVal < 0 || xVal > maxX) {
+          tooltip.style.display = "none";
+          return;
+        }
+
+        let cnt = 0;
+        for (const r of resultados) {
+          if (r <= xVal) cnt++;
+        }
+        const pct = Math.round((cnt / N) * 100);
+
+        tooltip.style.display = "block";
+        tooltip.style.left =
+          e.clientX - chartWrap.getBoundingClientRect().left + 12 + "px";
+        tooltip.style.top =
+          e.clientY - chartWrap.getBoundingClientRect().top - 36 + "px";
+        tooltip.textContent = `Con ${fmtNum(xVal)} sobres, el ${pct}% completa el álbum`;
+      });
+      overlay.addEventListener("mouseleave", () => {
+        tooltip.style.display = "none";
+      });
+
+      $("chart-wrap").classList.remove("hidden");
+      $("chart-legend").classList.remove("hidden");
+
+      // Poblar tabla de percentiles
+      const rows = [
+        {
+          p: "P25",
+          label: "1 de cada 4 ya terminó",
+          val: pcts.p25,
+          color: "text-blue-400",
+        },
+        {
+          p: "P50",
+          label: "La mitad ya terminó",
+          val: pcts.p50,
+          color: "text-yellow-400",
+        },
+        {
+          p: "P75",
+          label: "3 de cada 4 ya terminaron",
+          val: pcts.p75,
+          color: "text-slate-300",
+        },
+        {
+          p: "P90",
+          label: "9 de cada 10 ya terminaron",
+          val: pcts.p90,
+          color: "text-orange-400",
+        },
+        {
+          p: "P99",
+          label: "Casi todos ya terminaron",
+          val: pcts.p99,
+          color: "text-red-400",
+        },
+      ];
+      const precio = getInputs().precio;
+      const tbody = $("pct-table-body");
+      if (tbody) {
+        tbody.innerHTML = rows
+          .map(
+            (r, i) => `
+        <tr class="border-b border-white/5 ${i % 2 === 0 ? "" : "bg-white/[0.02]"}">
+          <td class="py-2 px-4 font-medium ${r.color}">${r.p}</td>
+          <td class="py-2 px-4 text-slate-400 hidden sm:table-cell">${r.label}</td>
+          <td class="py-2 px-4 text-right text-slate-200">${fmtNum(r.val)}</td>
+          <td class="py-2 px-4 text-right text-slate-400">${fmtCLP(r.val * precio)}</td>
+        </tr>
+      `,
+          )
+          .join("");
+      }
+      $("pct-table").classList.remove("hidden");
+    }
+
+    // ── Init grid ──────────────────────────────────────────────
+    buildGrids();
+  });
+</script>
